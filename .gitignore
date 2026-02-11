@@ -1,0 +1,5 @@
+server.key
+server.cert
+node_modules/
+.DS_Store
+Thumbs.db
