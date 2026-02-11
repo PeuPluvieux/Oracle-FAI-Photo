@@ -178,12 +178,10 @@ const App = {
         // Switch to camera screen
         Screens.show('camera');
 
-        // Start camera with the orientation of the first photo
+        // Start camera with native settings (no forced aspect ratio)
         try {
             await Camera.init();
-            const firstPhoto = SESSION.getCurrentPhoto();
-            const orientation = firstPhoto ? firstPhoto.orientation : 'portrait';
-            await Camera.start(null, orientation);
+            await Camera.start();
             Screens.updateCameraUI();
         } catch (error) {
             console.error('Camera error:', error);
@@ -205,13 +203,7 @@ const App = {
 
             // Check if more photos to take
             if (SESSION.nextPhoto()) {
-                // Check if orientation changed for next photo
-                const nextPhoto = SESSION.getCurrentPhoto();
-                if (nextPhoto && nextPhoto.orientation !== photo.orientation) {
-                    await Camera.start(Camera.currentDeviceId, nextPhoto.orientation);
-                }
-
-                // Update UI for next photo
+                // Update UI for next photo (viewport/template switch instantly)
                 Screens.updateCameraUI();
             } else {
                 // All photos taken, go to review
@@ -226,17 +218,9 @@ const App = {
     },
 
     // Skip current photo
-    async skipPhoto() {
-        const currentPhoto = SESSION.getCurrentPhoto();
-
+    skipPhoto() {
         // Move to next photo without capturing
         if (SESSION.nextPhoto()) {
-            // Check if orientation changed
-            const nextPhoto = SESSION.getCurrentPhoto();
-            if (nextPhoto && currentPhoto && nextPhoto.orientation !== currentPhoto.orientation) {
-                await Camera.start(Camera.currentDeviceId, nextPhoto.orientation);
-            }
-
             Screens.updateCameraUI();
         } else {
             // All photos done, go to review
