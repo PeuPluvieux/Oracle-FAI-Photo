@@ -268,15 +268,25 @@ const Screens = {
 
             photos.forEach((photo, index) => {
                 const card = document.createElement('div');
-                card.className = 'relative rounded-lg overflow-hidden cursor-pointer bg-gray-800';
+                card.className = 'relative rounded-lg overflow-hidden bg-gray-800';
                 card.innerHTML = `
-                    <img src="${photo.dataUrl}" alt="${photo.id}" class="w-full aspect-square object-cover">
-                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                    <img src="${photo.dataUrl}" alt="${photo.id}" class="w-full aspect-square object-cover cursor-pointer" data-index="${index}">
+                    <div class="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/70 to-transparent p-2">
                         <span class="text-white text-xs font-medium">${photo.id}</span>
                     </div>
+                    <div class="p-2">
+                        <button class="retake-gallery-btn w-full bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold py-2 px-3 rounded transition-all" data-index="${index}">
+                            Retake
+                        </button>
+                    </div>
                 `;
-                card.addEventListener('click', () => {
+                // Tap photo to preview full size
+                card.querySelector('img').addEventListener('click', () => {
                     this.openPhotoPreview(index);
+                });
+                // Retake button
+                card.querySelector('.retake-gallery-btn').addEventListener('click', () => {
+                    App.retakeSingleFromGallery(index);
                 });
                 container.appendChild(card);
             });
