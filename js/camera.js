@@ -1,6 +1,10 @@
 /**
  * Oracle FAI Photos - Camera Module
  * Handles camera access, device selection, video stream, and orientation
+ *
+ * Uses minimal constraints so the camera behaves like the native camera app
+ * (no zoom, native colors/quality). Aspect ratio cropping is handled at
+ * capture time only, not on the live preview.
  */
 
 const Camera = {
@@ -58,27 +62,33 @@ const Camera = {
     },
 
     // Start camera with specific device and orientation
+    // Uses minimal constraints to get native camera feel (no forced zoom/crop)
     async start(deviceId = null, orientation = 'portrait') {
         try {
             // Stop any existing stream
             this.stop();
 
             this.currentOrientation = orientation;
-            const settings = this.getPhotoSettings(orientation);
 
+            // Minimal constraints - let the camera use its native settings
+            // Only request back camera and high resolution, no forced aspect ratio
             const constraints = {
                 video: {
-                    aspectRatio: settings.aspectRatio,
-                    width: { ideal: settings.width },
-                    height: { ideal: settings.height },
-                    facingMode: 'environment' // Prefer back camera on mobile
+                    facingMode: 'environment',
+                    width: { ideal: 3840 },   // Request highest available resolution
+                    height: { ideal: 2160 }
                 },
                 audio: false
             };
 
             // Use specific device if provided
             if (deviceId) {
-                constraints.video.deviceId = { exact: deviceId };
+                // When selecting a specific device, drop facingMode
+                constraints.video = {
+                    deviceId: { exact: deviceId },
+                    width: { ideal: 3840 },
+                    height: { ideal: 2160 }
+                };
             }
 
             this.stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -93,7 +103,8 @@ const Camera = {
             const select = document.getElementById('camera-select');
             select.value = this.currentDeviceId;
 
-            console.log(`Camera started (${orientation}):`, videoTrack.label);
+            const actualSettings = videoTrack.getSettings();
+            console.log(`Camera started (${orientation}): ${videoTrack.label} - ${actualSettings.width}x${actualSettings.height}`);
             return true;
         } catch (error) {
             console.error('Error starting camera:', error);
