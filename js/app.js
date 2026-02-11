@@ -306,6 +306,29 @@ const App = {
         Screens.updateCameraUI();
     },
 
+    // Retake a single photo directly from the gallery grid
+    retakeSingleFromGallery(index) {
+        const photo = SESSION.capturedPhotos[index];
+        if (!photo) return;
+
+        // Find this photo's position in the queue by matching ID
+        const queueIndex = SESSION.photoQueue.findIndex(p => p.id === photo.id);
+
+        // Save current position and enter retake mode
+        this._retakeIndex = index;
+        this._retakeQueueIndex = queueIndex >= 0 ? queueIndex : SESSION.currentPhotoIndex;
+        this._savedPhotoIndex = SESSION.currentPhotoIndex;
+
+        // Temporarily point to the retake photo so the template overlay shows correctly
+        if (queueIndex >= 0) {
+            SESSION.currentPhotoIndex = queueIndex;
+        }
+
+        // Close gallery and update camera UI to show the retake photo's template
+        Screens.closeGallery();
+        Screens.updateCameraUI();
+    },
+
     // Retake selected photos (from review screen)
     retakeSelected() {
         const selectedIndices = Screens.getSelectedPhotos();
