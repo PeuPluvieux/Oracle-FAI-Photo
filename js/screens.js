@@ -237,6 +237,75 @@ const Screens = {
         return selected;
     },
 
+    // Update the last photo thumbnail on camera screen
+    updateLastPhotoThumb() {
+        const thumb = document.getElementById('last-photo-thumb');
+        const icon = document.getElementById('gallery-icon');
+        const photos = SESSION.capturedPhotos;
+
+        if (photos.length > 0) {
+            thumb.src = photos[photos.length - 1].dataUrl;
+            thumb.classList.remove('hidden');
+            icon.classList.add('hidden');
+        } else {
+            thumb.classList.add('hidden');
+            icon.classList.remove('hidden');
+        }
+    },
+
+    // Open gallery modal showing all captured photos
+    openGallery() {
+        const container = document.getElementById('gallery-photos');
+        const emptyMsg = document.getElementById('gallery-empty');
+        container.innerHTML = '';
+
+        const photos = SESSION.capturedPhotos;
+
+        if (photos.length === 0) {
+            emptyMsg.classList.remove('hidden');
+        } else {
+            emptyMsg.classList.add('hidden');
+
+            photos.forEach((photo, index) => {
+                const card = document.createElement('div');
+                card.className = 'relative rounded-lg overflow-hidden cursor-pointer bg-gray-800';
+                card.innerHTML = `
+                    <img src="${photo.dataUrl}" alt="${photo.id}" class="w-full aspect-square object-cover">
+                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                        <span class="text-white text-xs font-medium">${photo.id}</span>
+                    </div>
+                `;
+                card.addEventListener('click', () => {
+                    this.openPhotoPreview(index);
+                });
+                container.appendChild(card);
+            });
+        }
+
+        document.getElementById('gallery-modal').classList.remove('hidden');
+    },
+
+    // Close gallery modal
+    closeGallery() {
+        document.getElementById('gallery-modal').classList.add('hidden');
+    },
+
+    // Open single photo preview with retake option
+    openPhotoPreview(index) {
+        const photo = SESSION.capturedPhotos[index];
+        if (!photo) return;
+
+        document.getElementById('preview-photo-id').textContent = `${photo.id} - ${photo.name}`;
+        document.getElementById('preview-photo-img').src = photo.dataUrl;
+        document.getElementById('preview-retake-btn').dataset.index = index;
+        document.getElementById('preview-modal').classList.remove('hidden');
+    },
+
+    // Close photo preview
+    closePhotoPreview() {
+        document.getElementById('preview-modal').classList.add('hidden');
+    },
+
     // Show error modal
     showError(message) {
         document.getElementById('error-message').textContent = message;

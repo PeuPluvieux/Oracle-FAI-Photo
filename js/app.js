@@ -98,6 +98,24 @@ const App = {
             this.skipPhoto();
         });
 
+        // Gallery button (view captured photos mid-session)
+        document.getElementById('gallery-btn').addEventListener('click', () => {
+            Screens.openGallery();
+        });
+
+        document.getElementById('gallery-close-btn').addEventListener('click', () => {
+            Screens.closeGallery();
+        });
+
+        // Photo preview modal
+        document.getElementById('preview-close-btn').addEventListener('click', () => {
+            Screens.closePhotoPreview();
+        });
+
+        document.getElementById('preview-retake-btn').addEventListener('click', () => {
+            this.retakeSinglePhoto();
+        });
+
         // Camera selection
         document.getElementById('camera-select').addEventListener('change', (e) => {
             if (e.target.value) {
@@ -198,8 +216,36 @@ const App = {
         }
 
         try {
+            // Check if we're in retake mode
+            if (this._retakeIndex !== null) {
+                // Retake: capture and replace the specific photo
+                const photoInfo = SESSION.photoQueue[this._retakeQueueIndex];
+                const dataUrl = Capture.capturePhoto();
+
+                SESSION.capturedPhotos[this._retakeIndex] = {
+                    ...photoInfo,
+                    dataUrl: dataUrl,
+                    timestamp: Date.now()
+                };
+
+                console.log('Photo retaken:', photoInfo.id);
+
+                // Exit retake mode - restore original position
+                SESSION.currentPhotoIndex = this._savedPhotoIndex;
+                this._retakeIndex = null;
+                this._retakeQueueIndex = null;
+                this._savedPhotoIndex = null;
+
+                Screens.updateCameraUI();
+                Screens.updateLastPhotoThumb();
+                return;
+            }
+
             const photo = Capture.captureAndStore();
             console.log('Photo captured:', photo.filename);
+
+            // Update thumbnail
+            Screens.updateLastPhotoThumb();
 
             // Check if more photos to take
             if (SESSION.nextPhoto()) {
@@ -230,7 +276,37 @@ const App = {
         }
     },
 
-    // Retake selected photos
+    // Retake state
+    _retakeIndex: null,       // Index in capturedPhotos being retaken
+    _retakeQueueIndex: null,  // Index in photoQueue for the photo being retaken
+    _savedPhotoIndex: null,   // Original queue position to restore after retake
+
+    // Retake a single photo from the gallery preview
+    retakeSinglePhoto() {
+        const index = parseInt(document.getElementById('preview-retake-btn').dataset.index);
+        const photo = SESSION.capturedPhotos[index];
+        if (!photo) return;
+
+        // Find this photo's position in the queue by matching ID
+        const queueIndex = SESSION.photoQueue.findIndex(p => p.id === photo.id);
+
+        // Save current position and enter retake mode
+        this._retakeIndex = index;
+        this._retakeQueueIndex = queueIndex >= 0 ? queueIndex : SESSION.currentPhotoIndex;
+        this._savedPhotoIndex = SESSION.currentPhotoIndex;
+
+        // Temporarily point to the retake photo so the template overlay shows correctly
+        if (queueIndex >= 0) {
+            SESSION.currentPhotoIndex = queueIndex;
+        }
+
+        // Close modals and update camera UI to show the retake photo's template
+        Screens.closePhotoPreview();
+        Screens.closeGallery();
+        Screens.updateCameraUI();
+    },
+
+    // Retake selected photos (from review screen)
     retakeSelected() {
         const selectedIndices = Screens.getSelectedPhotos();
 
