@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oracle FAI Photos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        oracle: {
+                            primary: '#1a365d',
+                            secondary: '#2b6cb0',
+                            accent: '#4299e1',
+                            light: '#ebf8ff',
+                            dark: '#0d1b2a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-oracle-dark min-h-screen text-white">
+
+    <!-- Login Screen -->
+    <section id="login-screen" class="screen active min-h-screen flex flex-col items-center justify-center p-6">
+        <div class="max-w-sm w-full">
+            <h1 class="text-3xl font-bold mb-2 text-center text-oracle-accent">Oracle FAI Photos</h1>
+            <p class="text-gray-400 mb-8 text-center">Sign in to continue</p>
+
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label for="login-username" class="block text-sm font-medium mb-2">Username</label>
+                    <input type="text" id="login-username" placeholder="Enter username"
+                           class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-oracle-accent">
+                </div>
+                <div>
+                    <label for="login-password" class="block text-sm font-medium mb-2">Password</label>
+                    <input type="password" id="login-password" placeholder="Enter password"
+                           class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-oracle-accent">
+                </div>
+            </div>
+
+            <p id="login-error" class="text-red-400 text-sm mb-4 hidden">Invalid username or password.</p>
+
+            <button id="login-btn" class="w-full bg-oracle-secondary hover:bg-oracle-accent text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300 transform hover:scale-105">
+                Sign In
+            </button>
+        </div>
+        <footer class="absolute bottom-4 text-gray-500 text-sm">
+            Oracle FAI Photos v1.0
+        </footer>
+    </section>
+
+    <!-- Landing Screen -->
+    <section id="landing-screen" class="screen hidden min-h-screen flex flex-col items-center justify-center p-6">
+        <div class="text-center max-w-md">
+            <h1 class="text-4xl font-bold mb-4 text-oracle-accent">Oracle FAI Photos</h1>
+            <p class="text-gray-300 mb-8">First Article Inspection Photo Capture Tool</p>
+            <button id="start-btn" class="bg-oracle-secondary hover:bg-oracle-accent text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300 transform hover:scale-105">
+                Start Inspection
+            </button>
+        </div>
+        <footer class="absolute bottom-4 text-gray-500 text-sm">
+            Oracle FAI Photos v1.0
+        </footer>
+    </section>
+
+    <!-- Mode Selection Screen -->
+    <section id="mode-screen" class="screen hidden min-h-screen flex flex-col items-center justify-center p-6">
+        <div class="max-w-lg w-full">
+            <h2 class="text-2xl font-bold mb-2 text-center">Select FAI Type</h2>
+            <p class="text-gray-400 mb-8 text-center">Choose the type of inspection you are performing</p>
+
+            <div class="space-y-4 mb-8">
+                <button id="pretest-btn" class="mode-btn w-full bg-oracle-primary hover:bg-oracle-secondary text-white font-semibold py-6 px-6 rounded-lg transition-all border-2 border-transparent hover:border-oracle-accent">
+                    <div class="text-xl mb-1">Pretest FAI</div>
+                    <div class="text-sm text-gray-300">First Article Inspection before testing</div>
+                </button>
+
+                <button id="packout-btn" class="mode-btn w-full bg-oracle-primary hover:bg-oracle-secondary text-white font-semibold py-6 px-6 rounded-lg transition-all border-2 border-transparent hover:border-oracle-accent">
+                    <div class="text-xl mb-1">Packout FAI</div>
+                    <div class="text-sm text-gray-300">First Article Inspection for packaging</div>
+                </button>
+            </div>
+
+            <button id="mode-back-btn" class="w-full bg-gray-600 hover:bg-gray-500 text-white font-semibold py-3 px-6 rounded-lg transition-all">
+                Back
+            </button>
+        </div>
+    </section>
+
+    <!-- Rack Info Screen -->
+    <section id="info-screen" class="screen hidden min-h-screen flex flex-col p-6">
+        <div class="max-w-lg mx-auto w-full flex-1 flex flex-col justify-center">
+            <h2 class="text-2xl font-bold mb-2 text-center">Rack Information</h2>
+            <p class="text-gray-400 mb-6 text-center">Enter the rack details for photo naming</p>
+
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label for="part-number" class="block text-sm font-medium mb-2">Part Number (PN) <span class="text-gray-500 font-normal">- Optional</span></label>
+                    <input type="text" id="part-number" placeholder="e.g., 7628112-33067"
+                           class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-oracle-accent">
+                </div>
+
+                <div>
+                    <label for="serial-number" class="block text-sm font-medium mb-2">Serial Number (SN) <span class="text-gray-500 font-normal">- Optional</span></label>
+                    <input type="text" id="serial-number" placeholder="e.g., 2602HC8001"
+                           class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-oracle-accent">
+                </div>
+            </div>
+
+            <!-- Pretest Options - Component Quantities -->
+            <div id="pretest-options" class="hidden mb-6">
+                <h3 class="text-lg font-semibold mb-3">Rack Components</h3>
+                <p class="text-gray-400 text-sm mb-3">Enter the number of each component in the rack</p>
+
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                        <label for="qty-switches" class="text-sm font-medium">Switch Stacks</label>
+                        <input type="number" id="qty-switches" min="0" max="20" value="0"
+                               class="w-20 px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-center focus:outline-none focus:border-oracle-accent">
+                    </div>
+
+                    <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                        <label for="qty-servers" class="text-sm font-medium">Server Groups</label>
+                        <input type="number" id="qty-servers" min="0" max="20" value="0"
+                               class="w-20 px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-center focus:outline-none focus:border-oracle-accent">
+                    </div>
+
+                    <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                        <label for="qty-corning-edge" class="text-sm font-medium">Corning Edge</label>
+                        <input type="number" id="qty-corning-edge" min="0" max="20" value="0"
+                               class="w-20 px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-center focus:outline-none focus:border-oracle-accent">
+                    </div>
+
+                    <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                        <label for="qty-cable-labels" class="text-sm font-medium">Cable Types</label>
+                        <input type="number" id="qty-cable-labels" min="0" max="20" value="0"
+                               class="w-20 px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-center focus:outline-none focus:border-oracle-accent">
+                    </div>
+
+                    <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                        <label for="qty-cable-bend" class="text-sm font-medium">Cable Bend Tests</label>
+                        <input type="number" id="qty-cable-bend" min="0" max="20" value="0"
+                               class="w-20 px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-center focus:outline-none focus:border-oracle-accent">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Packout Options -->
+            <div id="packout-options" class="hidden mb-6">
+                <h3 class="text-lg font-semibold mb-3">Additional Options</h3>
+
+                <div class="space-y-3">
+                    <label class="flex items-center gap-3 p-3 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700">
+                        <input type="checkbox" id="door-branding" class="w-5 h-5 accent-oracle-accent">
+                        <span>Has door branding</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Photo count summary -->
+            <div id="photo-summary" class="mb-6 p-4 bg-gray-800 rounded-lg">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-300">Total photos to take:</span>
+                    <span id="total-photo-count" class="text-2xl font-bold text-oracle-accent">0</span>
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <button id="info-back-btn" class="flex-1 bg-gray-600 hover:bg-gray-500 text-white font-semibold py-3 px-6 rounded-lg transition-all">
+                    Back
+                </button>
+                <button id="info-continue-btn" class="flex-1 bg-oracle-secondary hover:bg-oracle-accent text-white font-semibold py-3 px-8 rounded-lg transition-all">
+                    Start Camera
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Camera Screen -->
+    <section id="camera-screen" class="screen hidden min-h-screen flex flex-col">
+        <!-- Header -->
+        <div class="bg-oracle-primary p-4">
+            <div class="flex items-center justify-between mb-2">
+                <button id="camera-back-btn" class="text-white hover:text-oracle-accent transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                </button>
+                <div id="photo-progress" class="text-white font-medium">
+                    Photo <span id="current-photo">1</span> of <span id="total-photos">1</span>
+                </div>
+                <div id="fai-mode-badge" class="bg-oracle-accent px-3 py-1 rounded text-sm font-medium">
+                    Pretest
+                </div>
+            </div>
+            <!-- Progress bar -->
+            <div class="w-full bg-gray-700 rounded-full h-2">
+                <div id="progress-bar" class="bg-oracle-accent h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Current photo name -->
+        <div class="bg-oracle-primary/50 px-4 py-2 text-center">
+            <div id="current-photo-name" class="text-lg font-semibold text-oracle-accent">
+                --
+            </div>
+            <div id="current-photo-location" class="text-sm text-gray-300">
+                --
+            </div>
+        </div>
+
+        <!-- Camera Container -->
+        <div class="flex-1 relative bg-black flex items-center justify-center overflow-hidden">
+            <!-- Camera viewport wrapper - maintains correct aspect ratio, centers video + overlay -->
+            <div id="camera-viewport" class="relative max-h-full max-w-full orientation-portrait">
+                <video id="camera-preview" autoplay playsinline class="w-full h-full object-cover"></video>
+                <div id="template-overlay" class="absolute inset-0 pointer-events-none flex items-center justify-center">
+                    <!-- Template PNG will be rendered here -->
+                </div>
+            </div>
+
+            <!-- Camera Selection (outside viewport so it doesn't get clipped) -->
+            <div class="absolute top-4 right-4 z-10">
+                <select id="camera-select" class="bg-black/50 text-white border border-white/30 rounded px-3 py-2 text-sm">
+                    <option value="">Loading cameras...</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="bg-oracle-primary p-4">
+            <div class="flex items-center justify-between max-w-md mx-auto">
+                <!-- Skip button -->
+                <button id="skip-btn" class="text-gray-400 hover:text-white transition-colors p-2">
+                    <span class="text-sm">Skip</span>
+                </button>
+
+                <!-- Capture button -->
+                <button id="capture-btn" class="w-20 h-20 bg-white rounded-full border-4 border-oracle-accent hover:border-oracle-secondary transition-all transform hover:scale-105 flex items-center justify-center">
+                    <div class="w-16 h-16 bg-white rounded-full border-2 border-gray-300"></div>
+                </button>
+
+                <!-- Next indicator -->
+                <div class="text-gray-400 text-sm p-2">
+                    <span id="photos-remaining">0</span> left
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Review Screen -->
+    <section id="review-screen" class="screen hidden min-h-screen flex flex-col p-6">
+        <div class="max-w-4xl mx-auto w-full">
+            <h2 class="text-2xl font-bold mb-2 text-center">Review Photos</h2>
+            <p class="text-gray-400 mb-6 text-center">
+                <span id="review-mode-text">Pretest FAI</span> -
+                <span id="review-pn-sn"></span>
+            </p>
+
+            <div id="photos-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+                <!-- Captured photos will appear here -->
+            </div>
+
+            <div class="flex gap-4 justify-center flex-wrap">
+                <button id="retake-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-semibold py-3 px-6 rounded-lg transition-all">
+                    Retake Selected
+                </button>
+                <button id="download-zip-btn" class="bg-green-600 hover:bg-green-500 text-white font-semibold py-3 px-6 rounded-lg transition-all">
+                    Download ZIP
+                </button>
+                <button id="email-btn" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 px-6 rounded-lg transition-all">
+                    Email ZIP
+                </button>
+                <button id="new-session-btn" class="bg-oracle-secondary hover:bg-oracle-accent text-white font-semibold py-3 px-6 rounded-lg transition-all">
+                    New Inspection
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Error Modal -->
+    <div id="error-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div class="bg-oracle-primary rounded-lg p-6 max-w-md w-full">
+            <h3 class="text-xl font-bold mb-4 text-red-400">Error</h3>
+            <p id="error-message" class="text-gray-300 mb-6"></p>
+            <button id="error-close-btn" class="bg-oracle-secondary hover:bg-oracle-accent text-white font-semibold py-2 px-6 rounded-lg transition-all w-full">
+                OK
+            </button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/camera.js"></script>
+    <script src="js/capture.js"></script>
+    <script src="js/export.js"></script>
+    <script src="js/screens.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
