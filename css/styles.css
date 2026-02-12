@@ -13,23 +13,13 @@
     display: flex;
 }
 
-/* Camera viewport wrapper - centers and constrains video + overlay */
+/* Camera viewport wrapper - single portrait mode, fills available space */
 #camera-viewport {
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-#camera-viewport.orientation-portrait {
-    aspect-ratio: 9 / 16;
-    max-height: 80vh;
-    max-width: 100%;
-}
-
-#camera-viewport.orientation-landscape {
-    aspect-ratio: 16 / 9;
-    max-height: 80vh;
-    max-width: 100%;
+    width: 100%;
+    height: 100%;
 }
 
 /* Camera preview fills the viewport wrapper */
@@ -80,12 +70,11 @@
     transition: all 0.2s ease;
 }
 
-.photo-card.photo-portrait {
-    aspect-ratio: 9 / 16;
-}
-
-.photo-card.photo-landscape {
-    aspect-ratio: 16 / 9;
+/* Landscape templates rotated 90deg to display in portrait viewport */
+.template-rotated {
+    transform: rotate(90deg);
+    /* Scale so the rotated image fits within the portrait container */
+    transform-origin: center center;
 }
 
 .photo-card:hover {

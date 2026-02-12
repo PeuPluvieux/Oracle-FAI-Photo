@@ -1,7 +1,7 @@
 /**
  * Oracle FAI Photos - Capture Module
- * Handles photo capture from video stream (without overlay)
- * Supports portrait and landscape orientations
+ * Captures the full camera frame without cropping.
+ * Saves to IndexedDB immediately after capture via Storage module.
  */
 
 const Capture = {
@@ -14,8 +14,7 @@ const Capture = {
         this.ctx = this.canvas.getContext('2d');
     },
 
-    // Capture photo from video stream
-    // IMPORTANT: This captures the raw video - no template/overlay included
+    // Capture photo from video stream - full frame, no cropping
     capturePhoto() {
         const video = Camera.videoElement;
 
@@ -23,43 +22,15 @@ const Capture = {
             throw new Error('Camera is not active');
         }
 
-        // Get orientation-specific settings from current photo
-        const currentPhoto = SESSION.getCurrentPhoto();
-        const orientation = currentPhoto ? currentPhoto.orientation : Camera.currentOrientation;
-        const settings = Camera.getPhotoSettings(orientation);
-
-        // Set canvas to desired output size
-        this.canvas.width = settings.width;
-        this.canvas.height = settings.height;
-
-        // Calculate source dimensions to maintain aspect ratio
+        // Use full camera resolution - no aspect ratio cropping
         const videoWidth = video.videoWidth;
         const videoHeight = video.videoHeight;
-        const videoAspect = videoWidth / videoHeight;
-        const targetAspect = settings.aspectRatio;
 
-        let sx, sy, sw, sh;
+        this.canvas.width = videoWidth;
+        this.canvas.height = videoHeight;
 
-        if (videoAspect > targetAspect) {
-            // Video is wider - crop sides
-            sh = videoHeight;
-            sw = videoHeight * targetAspect;
-            sx = (videoWidth - sw) / 2;
-            sy = 0;
-        } else {
-            // Video is taller - crop top/bottom
-            sw = videoWidth;
-            sh = videoWidth / targetAspect;
-            sx = 0;
-            sy = (videoHeight - sh) / 2;
-        }
-
-        // Draw video frame to canvas (no overlay!)
-        this.ctx.drawImage(
-            video,
-            sx, sy, sw, sh,           // Source rectangle
-            0, 0, this.canvas.width, this.canvas.height  // Destination
-        );
+        // Draw full video frame to canvas
+        this.ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
 
         // Convert to data URL
         const dataUrl = this.canvas.toDataURL(CONFIG.photo.format, CONFIG.photo.quality);
@@ -92,7 +63,7 @@ const Capture = {
 
         const dataUrl = this.capturePhoto();
 
-        // Store captured photo
+        // Store captured photo in session
         const capturedPhoto = {
             ...photoInfo,
             dataUrl: dataUrl,
@@ -100,6 +71,12 @@ const Capture = {
         };
 
         SESSION.capturedPhotos.push(capturedPhoto);
+
+        // Fire-and-forget save to IndexedDB
+        Storage.savePhoto(capturedPhoto);
+
+        // Persist updated session metadata
+        Storage.saveSession(SESSION.toJSON());
 
         return capturedPhoto;
     },

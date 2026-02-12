@@ -1,10 +1,10 @@
 /**
  * Oracle FAI Photos - Camera Module
- * Handles camera access, device selection, video stream, and orientation
+ * Handles camera access, device selection, video stream, and auto-recovery.
  *
  * Uses minimal constraints so the camera behaves like the native camera app
- * (no zoom, native colors/quality). Aspect ratio cropping is handled at
- * capture time only, not on the live preview.
+ * (no zoom, native colors/quality). All photos are portrait - no orientation switching.
+ * Auto-recovers the stream when the user returns from a tab switch.
  */
 
 const Camera = {
@@ -12,7 +12,7 @@ const Camera = {
     videoElement: null,
     devices: [],
     currentDeviceId: null,
-    currentOrientation: 'portrait', // 'portrait' or 'landscape'
+    _visibilityHandler: null,
 
     // Initialize camera module
     async init() {
@@ -55,20 +55,12 @@ const Camera = {
         });
     },
 
-    // Get photo settings for current orientation
-    getPhotoSettings(orientation) {
-        const orient = orientation || this.currentOrientation;
-        return CONFIG.photo[orient] || CONFIG.photo.portrait;
-    },
-
-    // Start camera with specific device and orientation
+    // Start camera stream
     // Uses minimal constraints to get native camera feel (no forced zoom/crop)
-    async start(deviceId = null, orientation = 'portrait') {
+    async start(deviceId = null) {
         try {
-            // Stop any existing stream
-            this.stop();
-
-            this.currentOrientation = orientation;
+            // Stop any existing stream (but don't remove visibility handler yet)
+            this._stopStream();
 
             // Minimal constraints - let the camera use its native settings
             // Only request back camera and high resolution, no forced aspect ratio
@@ -83,7 +75,6 @@ const Camera = {
 
             // Use specific device if provided
             if (deviceId) {
-                // When selecting a specific device, drop facingMode
                 constraints.video = {
                     deviceId: { exact: deviceId },
                     width: { ideal: 3840 },
@@ -104,7 +95,11 @@ const Camera = {
             select.value = this.currentDeviceId;
 
             const actualSettings = videoTrack.getSettings();
-            console.log(`Camera started (${orientation}): ${videoTrack.label} - ${actualSettings.width}x${actualSettings.height}`);
+            console.log(`Camera started: ${videoTrack.label} - ${actualSettings.width}x${actualSettings.height}`);
+
+            // Install visibility handler for auto-recovery
+            this._installVisibilityHandler();
+
             return true;
         } catch (error) {
             console.error('Error starting camera:', error);
@@ -112,21 +107,61 @@ const Camera = {
         }
     },
 
-    // Switch to different camera (keep current orientation)
+    // Switch to different camera
     async switchCamera(deviceId) {
         if (deviceId !== this.currentDeviceId) {
-            await this.start(deviceId, this.currentOrientation);
+            await this.start(deviceId);
         }
     },
 
-    // Stop camera stream
+    // Auto-recover camera after tab switch kills the stream
+    async recover() {
+        if (this.isActive()) return; // Stream is fine, nothing to do
+
+        console.log('Camera stream lost, attempting recovery...');
+        try {
+            await this.start(this.currentDeviceId);
+            console.log('Camera recovered successfully');
+        } catch (err) {
+            console.error('Camera recovery failed:', err);
+        }
+    },
+
+    // Stop camera stream and remove visibility handler
     stop() {
+        this._stopStream();
+        this._removeVisibilityHandler();
+    },
+
+    // Stop the media stream only (internal)
+    _stopStream() {
         if (this.stream) {
             this.stream.getTracks().forEach(track => track.stop());
             this.stream = null;
         }
         if (this.videoElement) {
             this.videoElement.srcObject = null;
+        }
+    },
+
+    // Install visibilitychange listener for auto-recovery
+    _installVisibilityHandler() {
+        // Don't double-install
+        if (this._visibilityHandler) return;
+
+        this._visibilityHandler = () => {
+            if (document.visibilityState === 'visible') {
+                this.recover();
+            }
+        };
+        document.addEventListener('visibilitychange', this._visibilityHandler);
+    },
+
+    // Remove visibilitychange listener
+    _removeVisibilityHandler() {
+        if (this._visibilityHandler) {
+            document.removeEventListener('visibilitychange', this._visibilityHandler);
+            this._visibilityHandler = null;
         }
     },
 
