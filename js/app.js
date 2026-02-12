@@ -1,6 +1,7 @@
 /**
  * Oracle FAI Photos - Main Application
- * Initializes and coordinates all modules
+ * Initializes and coordinates all modules.
+ * Supports session resume from IndexedDB/localStorage after crash/reload.
  */
 
 const App = {
@@ -10,15 +11,95 @@ const App = {
 
         // Initialize modules
         Capture.init();
+        await Storage.init();
 
         // Setup event listeners
         this.setupEventListeners();
+
+        // Check for a saved session to resume
+        await this.checkForResume();
+
+        // Warn before leaving mid-session
+        window.addEventListener('beforeunload', (e) => {
+            if (SESSION.capturedPhotos.length > 0 && Screens.currentScreen === 'camera') {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
 
         console.log('Oracle FAI Photos - Ready');
     },
 
     // Hardcoded credentials
     credentials: { username: 'admin', password: 'mitacqad123' },
+
+    // Check for a previously saved session and prompt to resume
+    async checkForResume() {
+        const savedSession = Storage.loadSession();
+        if (!savedSession || !savedSession.mode) return;
+
+        const photoCount = await Storage.getPhotoCount();
+        if (photoCount === 0) {
+            // Session metadata exists but no photos - clean up
+            await Storage.clearAll();
+            return;
+        }
+
+        // Show resume modal with session details
+        const modeText = savedSession.mode === 'pretest' ? 'Pretest FAI' : 'Packout FAI';
+        document.getElementById('resume-mode').textContent = modeText;
+
+        let pnSn = '';
+        if (savedSession.partNumber) pnSn += `PN: ${savedSession.partNumber}`;
+        if (savedSession.serialNumber) {
+            if (pnSn) pnSn += ' | ';
+            pnSn += `SN: ${savedSession.serialNumber}`;
+        }
+        document.getElementById('resume-pn-sn').textContent = pnSn || 'No PN/SN';
+        document.getElementById('resume-photo-count').textContent = `${photoCount} photo${photoCount !== 1 ? 's' : ''} captured`;
+
+        document.getElementById('resume-modal').classList.remove('hidden');
+    },
+
+    // Resume a saved session - restore state and go to camera
+    async resumeSession() {
+        document.getElementById('resume-modal').classList.add('hidden');
+
+        const savedSession = Storage.loadSession();
+        if (!savedSession) return;
+
+        // Restore SESSION state from saved metadata
+        SESSION.fromJSON(savedSession);
+
+        // Load photos from IndexedDB
+        const photos = await Storage.loadPhotos();
+
+        // Match loaded photos back into capturedPhotos in queue order
+        SESSION.capturedPhotos = [];
+        for (const photo of photos) {
+            SESSION.capturedPhotos.push(photo);
+        }
+
+        // Go to camera screen and resume
+        Screens.show('camera');
+
+        try {
+            await Camera.init();
+            await Camera.start();
+            Screens.updateCameraUI();
+            Screens.updateLastPhotoThumb();
+        } catch (error) {
+            console.error('Camera error on resume:', error);
+            Screens.showError('Unable to access camera. Please ensure camera permissions are granted.');
+            Screens.show('info');
+        }
+    },
+
+    // Decline resume - clear saved data and start fresh
+    async startFresh() {
+        document.getElementById('resume-modal').classList.add('hidden');
+        await Storage.clearAll();
+    },
 
     // Setup all event listeners
     setupEventListeners() {
@@ -140,6 +221,15 @@ const App = {
             this.retakeSelected();
         });
 
+        // Resume modal
+        document.getElementById('resume-continue-btn').addEventListener('click', () => {
+            this.resumeSession();
+        });
+
+        document.getElementById('resume-fresh-btn').addEventListener('click', () => {
+            this.startFresh();
+        });
+
         // Error modal
         document.getElementById('error-close-btn').addEventListener('click', () => {
             Screens.hideError();
@@ -193,10 +283,16 @@ const App = {
             return;
         }
 
+        // Clear any stale data from a previous session
+        await Storage.clearAll();
+
+        // Persist initial session metadata
+        Storage.saveSession(SESSION.toJSON());
+
         // Switch to camera screen
         Screens.show('camera');
 
-        // Start camera with native settings (no forced aspect ratio)
+        // Start camera
         try {
             await Camera.init();
             await Camera.start();
@@ -222,11 +318,17 @@ const App = {
                 const photoInfo = SESSION.photoQueue[this._retakeQueueIndex];
                 const dataUrl = Capture.capturePhoto();
 
-                SESSION.capturedPhotos[this._retakeIndex] = {
+                const retakenPhoto = {
                     ...photoInfo,
                     dataUrl: dataUrl,
                     timestamp: Date.now()
                 };
+
+                SESSION.capturedPhotos[this._retakeIndex] = retakenPhoto;
+
+                // Update in IndexedDB
+                Storage.savePhoto(retakenPhoto);
+                Storage.saveSession(SESSION.toJSON());
 
                 console.log('Photo retaken:', photoInfo.id);
 
@@ -249,7 +351,9 @@ const App = {
 
             // Check if more photos to take
             if (SESSION.nextPhoto()) {
-                // Update UI for next photo (viewport/template switch instantly)
+                // Persist updated index
+                Storage.saveSession(SESSION.toJSON());
+                // Update UI for next photo
                 Screens.updateCameraUI();
             } else {
                 // All photos taken, go to review
@@ -267,6 +371,7 @@ const App = {
     skipPhoto() {
         // Move to next photo without capturing
         if (SESSION.nextPhoto()) {
+            Storage.saveSession(SESSION.toJSON());
             Screens.updateCameraUI();
         } else {
             // All photos done, go to review
@@ -340,16 +445,23 @@ const App = {
 
         // Remove selected photos from captured list (in reverse order)
         selectedIndices.sort((a, b) => b - a).forEach(index => {
+            const photo = SESSION.capturedPhotos[index];
+            if (photo) {
+                Storage.deletePhoto(photo.id);
+            }
             SESSION.capturedPhotos.splice(index, 1);
         });
+
+        Storage.saveSession(SESSION.toJSON());
 
         // Re-render grid
         Screens.renderPhotosGrid();
     },
 
-    // Start new session
-    startNewSession() {
+    // Start new session - clear everything
+    async startNewSession() {
         SESSION.reset();
+        await Storage.clearAll();
         Screens.show('landing');
     }
 };

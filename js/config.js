@@ -4,10 +4,9 @@
  */
 
 const CONFIG = {
-    // Photo settings per orientation
+    // Photo settings - single portrait mode, no cropping
+    // Full camera resolution is captured; no forced aspect ratio
     photo: {
-        portrait: { aspectRatio: 9 / 16, width: 1080, height: 1920 },
-        landscape: { aspectRatio: 16 / 9, width: 1920, height: 1080 },
         format: 'image/jpeg',
         quality: 0.92
     },
@@ -431,6 +430,35 @@ const SESSION = {
         }
 
         return count;
+    },
+
+    // Serialize session state for persistence (excludes photo blobs - those go to IndexedDB)
+    toJSON() {
+        return {
+            mode: this.mode,
+            partNumber: this.partNumber,
+            serialNumber: this.serialNumber,
+            components: { ...this.components },
+            hasDoorBranding: this.hasDoorBranding,
+            photoQueue: this.photoQueue,
+            currentPhotoIndex: this.currentPhotoIndex
+        };
+    },
+
+    // Restore session state from persisted data
+    fromJSON(data) {
+        if (!data) return false;
+        this.mode = data.mode;
+        this.partNumber = data.partNumber || '';
+        this.serialNumber = data.serialNumber || '';
+        this.components = data.components || {
+            switches: 0, servers: 0, corningEdge: 0, cableLabels: 0, cableBend: 0
+        };
+        this.hasDoorBranding = data.hasDoorBranding || false;
+        this.photoQueue = data.photoQueue || [];
+        this.currentPhotoIndex = data.currentPhotoIndex || 0;
+        this.capturedPhotos = []; // Photos loaded separately from IndexedDB
+        return true;
     },
 
     // Reset session

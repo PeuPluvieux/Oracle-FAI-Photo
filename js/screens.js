@@ -137,43 +137,47 @@ const Screens = {
             }
             document.getElementById('current-photo-location').textContent = locationText;
 
-            // Update viewport orientation class to match current photo
-            const viewport = document.getElementById('camera-viewport');
-            if (viewport) {
-                viewport.classList.remove('orientation-portrait', 'orientation-landscape');
-                viewport.classList.add(`orientation-${currentPhoto.orientation || 'portrait'}`);
-            }
-
             // Update template overlay for current photo
             this.renderTemplateOverlay(currentPhoto);
         }
     },
 
     // Render template overlay (PNG guide image on top of camera)
+    // Landscape-oriented templates are rotated 90deg via CSS so they
+    // display within the portrait viewport - user rotates phone to match.
     renderTemplateOverlay(photo) {
         const overlay = document.getElementById('template-overlay');
         overlay.innerHTML = '';
+
+        const isLandscape = photo && photo.orientation === 'landscape';
 
         if (!photo || !photo.template) {
             // No template for this photo - show a simple frame guide
             const frameDiv = document.createElement('div');
             frameDiv.className = 'absolute inset-4 border-2 border-dashed border-white/30 rounded-lg';
+            if (isLandscape) frameDiv.classList.add('template-rotated');
             overlay.appendChild(frameDiv);
 
             // Show photo ID in center
             const label = document.createElement('div');
             label.className = 'absolute inset-0 flex items-center justify-center';
             label.innerHTML = `<span class="text-white/20 text-4xl font-bold">${photo.id}</span>`;
+            if (isLandscape) label.classList.add('template-rotated');
             overlay.appendChild(label);
             return;
         }
 
-        // Load template PNG as overlay - fills the viewport exactly
+        // Load template PNG as overlay
         const templateImg = document.createElement('img');
         templateImg.src = `${CONFIG.templatePath}${photo.template}`;
         templateImg.className = 'w-full h-full object-contain';
         templateImg.style.opacity = '0.5';
         templateImg.alt = `Template: ${photo.id}`;
+
+        // Rotate landscape templates 90deg so they display in the portrait viewport
+        if (isLandscape) {
+            templateImg.classList.add('template-rotated');
+        }
 
         templateImg.onerror = () => {
             // Template file not found - show fallback
@@ -181,11 +185,13 @@ const Screens = {
             overlay.innerHTML = '';
             const fallback = document.createElement('div');
             fallback.className = 'absolute inset-4 border-2 border-dashed border-yellow-500/40 rounded-lg';
+            if (isLandscape) fallback.classList.add('template-rotated');
             overlay.appendChild(fallback);
 
             const label = document.createElement('div');
             label.className = 'absolute inset-0 flex items-center justify-center';
             label.innerHTML = `<span class="text-yellow-500/40 text-2xl font-bold">${photo.id}<br><span class="text-sm">Template missing</span></span>`;
+            if (isLandscape) label.classList.add('template-rotated');
             overlay.appendChild(label);
         };
 
