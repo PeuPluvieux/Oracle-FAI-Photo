@@ -24,6 +24,7 @@ const Export = {
     },
 
     // Build zip blob from captured photos
+    // Landscape-oriented photos are rotated 90° CW so they appear landscape in the output
     async buildZip() {
         if (typeof JSZip === 'undefined') {
             Screens.showError('JSZip library not loaded. Please check your internet connection.');
@@ -39,11 +40,38 @@ const Export = {
         const zip = new JSZip();
 
         for (const photo of photos) {
-            const blob = Capture.dataUrlToBlob(photo.dataUrl);
+            let blob;
+            if (photo.orientation === 'landscape') {
+                blob = await this.rotateImageToLandscape(photo.dataUrl);
+            } else {
+                blob = Capture.dataUrlToBlob(photo.dataUrl);
+            }
             zip.file(photo.filename, blob);
         }
 
         return await zip.generateAsync({ type: 'blob' });
+    },
+
+    // Rotate a portrait data URL 90° clockwise to produce a landscape image
+    rotateImageToLandscape(dataUrl) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                // Swap width/height for landscape output
+                canvas.width = img.height;
+                canvas.height = img.width;
+                const ctx = canvas.getContext('2d');
+                // Rotate 90° CW: translate to new origin, then rotate
+                ctx.translate(canvas.width, 0);
+                ctx.rotate(Math.PI / 2);
+                ctx.drawImage(img, 0, 0);
+                canvas.toBlob((blob) => {
+                    resolve(blob);
+                }, CONFIG.photo.format, CONFIG.photo.quality);
+            };
+            img.src = dataUrl;
+        });
     },
 
     // Download photos as ZIP
@@ -110,9 +138,14 @@ const Export = {
         URL.revokeObjectURL(url);
     },
 
-    // Download a single photo
-    downloadPhoto(capturedPhoto) {
-        const blob = Capture.dataUrlToBlob(capturedPhoto.dataUrl);
+    // Download a single photo (rotates landscape photos)
+    async downloadPhoto(capturedPhoto) {
+        let blob;
+        if (capturedPhoto.orientation === 'landscape') {
+            blob = await this.rotateImageToLandscape(capturedPhoto.dataUrl);
+        } else {
+            blob = Capture.dataUrlToBlob(capturedPhoto.dataUrl);
+        }
         const url = URL.createObjectURL(blob);
 
         const link = document.createElement('a');
