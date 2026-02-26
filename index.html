@@ -185,7 +185,7 @@
     </section>
 
     <!-- Camera Screen -->
-    <section id="camera-screen" class="screen hidden min-h-screen flex flex-col">
+    <section id="camera-screen" class="screen hidden h-screen overflow-hidden flex flex-col">
         <!-- Header -->
         <div class="bg-oracle-primary p-4">
             <div class="flex items-center justify-between mb-2">
@@ -197,6 +197,9 @@
                 <div id="photo-progress" class="text-white font-medium">
                     Photo <span id="current-photo">1</span> of <span id="total-photos">1</span>
                 </div>
+                <button id="finish-early-btn" class="hidden bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold py-1 px-3 rounded transition-all">
+                    Finish
+                </button>
                 <div id="fai-mode-badge" class="bg-oracle-accent px-3 py-1 rounded text-sm font-medium">
                     Pretest
                 </div>
@@ -221,7 +224,7 @@
         <div class="flex-1 relative bg-black flex items-center justify-center overflow-hidden">
             <!-- Camera viewport wrapper - maintains correct aspect ratio, centers video + overlay -->
             <div id="camera-viewport" class="relative max-h-full max-w-full">
-                <video id="camera-preview" autoplay playsinline class="w-full h-full object-cover"></video>
+                <video id="camera-preview" autoplay playsinline class="w-full h-full object-contain"></video>
                 <div id="template-overlay" class="absolute inset-0 pointer-events-none flex items-center justify-center">
                     <!-- Template PNG will be rendered here -->
                 </div>

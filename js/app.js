@@ -171,6 +171,25 @@ const App = {
             Screens.show('info');
         });
 
+        // Finish Early button
+        document.getElementById('finish-early-btn').addEventListener('click', () => {
+            this.finishEarly();
+        });
+
+        // Tap-to-focus on camera preview
+        document.getElementById('camera-preview').addEventListener('click', (e) => {
+            const video = e.target;
+            const rect = video.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width;
+            const y = (e.clientY - rect.top) / rect.height;
+
+            // Show visual focus indicator
+            this.showFocusIndicator(e.clientX, e.clientY);
+
+            // Attempt hardware focus
+            Camera.focusAtPoint(x, y);
+        });
+
         document.getElementById('capture-btn').addEventListener('click', () => {
             this.capturePhoto();
         });
@@ -463,6 +482,39 @@ const App = {
         SESSION.reset();
         await Storage.clearAll();
         Screens.show('landing');
+    },
+
+    // Finish session early - confirm, stop camera, go to review
+    finishEarly() {
+        if (SESSION.capturedPhotos.length === 0) return;
+
+        const count = SESSION.capturedPhotos.length;
+        const total = SESSION.photoQueue.length;
+        if (!confirm(`Finish with ${count} of ${total} photos?\nYou can resume later from the home screen.`)) {
+            return;
+        }
+
+        Camera.stop();
+        Screens.show('review');
+        Screens.renderPhotosGrid();
+    },
+
+    // Show a yellow focus indicator at the tapped position
+    showFocusIndicator(clientX, clientY) {
+        // Remove any existing indicator
+        const existing = document.querySelector('.focus-indicator');
+        if (existing) existing.remove();
+
+        const indicator = document.createElement('div');
+        indicator.className = 'focus-indicator';
+        indicator.style.left = clientX + 'px';
+        indicator.style.top = clientY + 'px';
+        document.body.appendChild(indicator);
+
+        // Remove after animation completes
+        indicator.addEventListener('animationend', () => {
+            indicator.remove();
+        });
     }
 };
 

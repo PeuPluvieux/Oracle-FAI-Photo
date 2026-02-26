@@ -118,6 +118,9 @@ const Screens = {
         // Update progress bar
         document.getElementById('progress-bar').style.width = `${progress.percentage}%`;
 
+        // Show/hide Finish Early button (visible once at least 1 photo captured)
+        document.getElementById('finish-early-btn').classList.toggle('hidden', SESSION.capturedPhotos.length === 0);
+
         // Update FAI mode badge
         const modeBadge = document.getElementById('fai-mode-badge');
         modeBadge.textContent = SESSION.mode === 'pretest' ? 'Pretest' : 'Packout';

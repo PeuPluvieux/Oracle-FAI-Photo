@@ -13,13 +13,15 @@
     display: flex;
 }
 
-/* Camera viewport wrapper - single portrait mode, fills available space */
+/* Camera viewport wrapper - 4:3 portrait aspect ratio, centered */
 #camera-viewport {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
-    height: 100%;
+    aspect-ratio: 3 / 4;
+    max-height: 100%;
+    margin: auto;
 }
 
 /* Camera preview fills the viewport wrapper */
@@ -42,6 +44,42 @@
 /* Capture button animation */
 #capture-btn:active {
     transform: scale(0.95);
+}
+
+/* Capture button pulse on photo taken */
+.capture-pulse {
+    animation: capture-shrink 0.3s ease-out !important;
+}
+@keyframes capture-shrink {
+    0% { transform: scale(1); }
+    30% { transform: scale(0.85); }
+    100% { transform: scale(1); }
+}
+
+/* Tap-to-focus indicator */
+.focus-indicator {
+    position: fixed;
+    width: 70px;
+    height: 70px;
+    border: 2px solid rgba(255, 255, 0, 0.9);
+    border-radius: 4px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 100;
+    animation: focus-ring 0.8s ease-out forwards;
+}
+
+@keyframes focus-ring {
+    0% {
+        opacity: 1;
+        width: 70px;
+        height: 70px;
+    }
+    100% {
+        opacity: 0;
+        width: 50px;
+        height: 50px;
+    }
 }
 
 /* Flash effect */

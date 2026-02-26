@@ -13,6 +13,7 @@ const Camera = {
     devices: [],
     currentDeviceId: null,
     _visibilityHandler: null,
+    _focusSupported: false,
 
     // Initialize camera module
     async init() {
@@ -62,13 +63,13 @@ const Camera = {
             // Stop any existing stream (but don't remove visibility handler yet)
             this._stopStream();
 
-            // Minimal constraints - let the camera use its native settings
-            // Only request back camera and high resolution, no forced aspect ratio
+            // Request native 4:3 aspect ratio at highest resolution
             const constraints = {
                 video: {
                     facingMode: 'environment',
-                    width: { ideal: 3840 },   // Request highest available resolution
-                    height: { ideal: 2160 }
+                    aspectRatio: { ideal: 4 / 3 },
+                    width: { ideal: 4032 },
+                    height: { ideal: 3024 }
                 },
                 audio: false
             };
@@ -77,8 +78,9 @@ const Camera = {
             if (deviceId) {
                 constraints.video = {
                     deviceId: { exact: deviceId },
-                    width: { ideal: 3840 },
-                    height: { ideal: 2160 }
+                    aspectRatio: { ideal: 4 / 3 },
+                    width: { ideal: 4032 },
+                    height: { ideal: 3024 }
                 };
             }
 
@@ -96,6 +98,9 @@ const Camera = {
 
             const actualSettings = videoTrack.getSettings();
             console.log(`Camera started: ${videoTrack.label} - ${actualSettings.width}x${actualSettings.height}`);
+
+            // Check if tap-to-focus is supported by this camera
+            this._checkFocusSupport();
 
             // Install visibility handler for auto-recovery
             this._installVisibilityHandler();
@@ -177,5 +182,36 @@ const Camera = {
             width: this.videoElement.videoWidth,
             height: this.videoElement.videoHeight
         };
+    },
+
+    // Check if the active camera track supports tap-to-focus
+    _checkFocusSupport() {
+        this._focusSupported = false;
+        if (!this.stream) return;
+        const track = this.stream.getVideoTracks()[0];
+        if (!track) return;
+        try {
+            const capabilities = track.getCapabilities();
+            if (capabilities && capabilities.focusMode && capabilities.focusMode.includes('manual')) {
+                this._focusSupported = true;
+            }
+        } catch (e) {
+            // getCapabilities not supported in this browser
+        }
+        console.log('Tap-to-focus supported:', this._focusSupported);
+    },
+
+    // Attempt hardware focus at normalized (x, y) coordinates (0-1 range)
+    async focusAtPoint(x, y) {
+        if (!this.stream) return;
+        const track = this.stream.getVideoTracks()[0];
+        if (!track) return;
+        try {
+            await track.applyConstraints({
+                advanced: [{ pointOfInterest: { x, y } }]
+            });
+        } catch (e) {
+            // Hardware focus not supported - visual indicator still shows
+        }
     }
 };
