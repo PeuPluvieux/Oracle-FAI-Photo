@@ -65,15 +65,15 @@ const CONFIG = {
 
         // --- LABELS & MISC (default) ---
         { id: 'SN', name: 'Serial Number Label', template: null, orientation: 'landscape', location: 'labels', section: 'serial' },
-        { id: 'LB1', name: 'Label 1', template: null, orientation: 'landscape', location: 'labels', section: 'labels' },
-        { id: 'LB2', name: 'Label 2', template: null, orientation: 'landscape', location: 'labels', section: 'labels' },
-        { id: 'LB3', name: 'Label 3', template: null, orientation: 'landscape', location: 'labels', section: 'labels' },
-        { id: 'PDU1', name: 'PDU Photo 1', template: null, orientation: 'portrait', location: 'rear', section: 'pdu' },
-        { id: 'PDU2', name: 'PDU Photo 2', template: null, orientation: 'portrait', location: 'rear', section: 'pdu' },
-        { id: 'PDU3', name: 'PDU Photo 3', template: null, orientation: 'portrait', location: 'rear', section: 'pdu' },
-        { id: 'PDU4', name: 'PDU Photo 4', template: null, orientation: 'portrait', location: 'rear', section: 'pdu' },
-        { id: 'PDU5', name: 'PDU Photo 5', template: null, orientation: 'portrait', location: 'rear', section: 'pdu' },
-        { id: 'PDU6', name: 'PDU Photo 6', template: null, orientation: 'portrait', location: 'rear', section: 'pdu' }
+        { id: 'LB1', name: 'Label 1', template: 'LB.png', orientation: 'landscape', location: 'labels', section: 'labels' },
+        { id: 'LB2', name: 'Label 2', template: 'LB.png', orientation: 'landscape', location: 'labels', section: 'labels' },
+        { id: 'LB3', name: 'Label 3', template: 'LB.png', orientation: 'landscape', location: 'labels', section: 'labels' },
+        { id: 'PDU1', name: 'PDU Left - Photo 1', template: 'PDUL.png', orientation: 'portrait', location: 'rear', section: 'pdu' },
+        { id: 'PDU2', name: 'PDU Left - Photo 2', template: 'PDUL.png', orientation: 'portrait', location: 'rear', section: 'pdu' },
+        { id: 'PDU3', name: 'PDU Left - Photo 3', template: 'PDUL.png', orientation: 'portrait', location: 'rear', section: 'pdu' },
+        { id: 'PDU4', name: 'PDU Right - Photo 1', template: 'PDUR.png', orientation: 'portrait', location: 'rear', section: 'pdu' },
+        { id: 'PDU5', name: 'PDU Right - Photo 2', template: 'PDUR.png', orientation: 'portrait', location: 'rear', section: 'pdu' },
+        { id: 'PDU6', name: 'PDU Right - Photo 3', template: 'PDUR.png', orientation: 'portrait', location: 'rear', section: 'pdu' }
     ],
 
     // ===========================================
@@ -89,17 +89,17 @@ const CONFIG = {
                 prefix: 'SW',
                 location: 'front',
                 angles: [
-                    { suffix: 'T', name: 'Top', template: 'Sw-T.png', orientation: 'landscape' },
-                    { suffix: 'B', name: 'Bottom', template: 'SW-B.png', orientation: 'landscape' }
+                    { suffix: 'T', name: 'Top', template: 'SW T.png', orientation: 'landscape' },
+                    { suffix: 'B', name: 'Bottom', template: 'SW B.png', orientation: 'landscape' }
                 ]
             },
             back: {
                 prefix: 'BSW',
                 location: 'rear',
                 angles: [
-                    { suffix: 'F', name: 'Front', template: null, orientation: 'landscape' },
-                    { suffix: 'L', name: 'Left', template: null, orientation: 'landscape' },
-                    { suffix: 'R', name: 'Right', template: null, orientation: 'landscape' }
+                    { suffix: 'F', name: 'Front', template: 'BSW F.png', orientation: 'landscape' },
+                    { suffix: 'L', name: 'Left', template: 'BSW L.png', orientation: 'landscape' },
+                    { suffix: 'R', name: 'Right', template: 'BSW R.png', orientation: 'landscape' }
                 ]
             }
         },
@@ -110,19 +110,19 @@ const CONFIG = {
                 prefix: 'SV',
                 location: 'front',
                 angles: [
-                    { suffix: 'F', name: 'Front', template: 'SV-F.png', orientation: 'landscape' },
-                    { suffix: 'B', name: 'Bottom', template: 'SV-B.png', orientation: 'landscape' },
-                    { suffix: 'L', name: 'Left', template: 'SV-L.png', orientation: 'landscape' },
-                    { suffix: 'R', name: 'Right', template: 'SV-R.png', orientation: 'landscape' }
+                    { suffix: 'F', name: 'Front', template: 'SV F.png', orientation: 'landscape' },
+                    { suffix: 'B', name: 'Bottom', template: 'SV B.png', orientation: 'landscape' },
+                    { suffix: 'L', name: 'Left', template: 'SV L.png', orientation: 'landscape' },
+                    { suffix: 'R', name: 'Right', template: 'SV R.png', orientation: 'landscape' }
                 ]
             },
             back: {
                 prefix: 'BSV',
                 location: 'rear',
                 angles: [
-                    { suffix: 'F', name: 'Front', template: 'BSV-F.png', orientation: 'landscape' },
-                    { suffix: 'L', name: 'Left', template: 'BSV-L.png', orientation: 'landscape' },
-                    { suffix: 'R', name: 'Right', template: 'BSV-R.png', orientation: 'landscape' }
+                    { suffix: 'F', name: 'Front', template: 'BSV F.png', orientation: 'landscape' },
+                    { suffix: 'L', name: 'Left', template: 'BSV L.png', orientation: 'landscape' },
+                    { suffix: 'R', name: 'Right', template: 'BSV R.png', orientation: 'landscape' }
                 ]
             }
         },
@@ -133,8 +133,8 @@ const CONFIG = {
                 prefix: 'CE',
                 location: 'front',
                 angles: [
-                    { suffix: 'C', name: 'Closed', template: 'CE-C.png', orientation: 'landscape' },
-                    { suffix: 'O', name: 'Open', template: 'CE-O.png', orientation: 'landscape' }
+                    { suffix: 'C', name: 'Closed', template: 'CE C.png', orientation: 'landscape' },
+                    { suffix: 'O', name: 'Open', template: 'CE O.png', orientation: 'landscape' }
                 ]
             },
             back: null
