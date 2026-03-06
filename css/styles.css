@@ -13,15 +13,13 @@
     display: flex;
 }
 
-/* Camera viewport wrapper - 4:3 portrait aspect ratio, centered */
+/* Camera viewport wrapper */
 #camera-viewport {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
-    aspect-ratio: 3 / 4;
-    max-height: 100%;
-    margin: auto;
+    height: 100%;
 }
 
 /* Camera preview fills the viewport wrapper */
