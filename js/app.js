@@ -165,6 +165,17 @@ const App = {
             });
         }
 
+        // Barcode scan buttons
+        document.getElementById('scan-pn-btn').addEventListener('click', () => {
+            this.startScan('part-number', 'Part Number (PN)');
+        });
+        document.getElementById('scan-sn-btn').addEventListener('click', () => {
+            this.startScan('serial-number', 'Serial Number (SN)');
+        });
+        document.getElementById('scanner-close-btn').addEventListener('click', () => {
+            this.stopScan();
+        });
+
         // Camera screen
         document.getElementById('camera-back-btn').addEventListener('click', () => {
             Camera.stop();
@@ -497,6 +508,58 @@ const App = {
         Camera.stop();
         Screens.show('review');
         Screens.renderPhotosGrid();
+    },
+
+    // ── Barcode Scanner ──────────────────────────────────────────
+    _scannerReader: null,
+
+    // Open scanner modal and start decoding for the given field
+    startScan(targetFieldId, fieldLabel) {
+        if (typeof ZXing === 'undefined') {
+            Screens.showError('Barcode scanner failed to load. Please check your internet connection.');
+            return;
+        }
+
+        document.getElementById('scanner-title').textContent = `Scan ${fieldLabel}`;
+        document.getElementById('scanner-modal').classList.remove('hidden');
+
+        const reader = new ZXing.BrowserMultiFormatReader();
+        this._scannerReader = reader;
+
+        const videoEl = document.getElementById('scanner-video');
+        reader.decodeFromConstraints(
+            { audio: false, video: { facingMode: 'environment' } },
+            videoEl,
+            (result, err) => {
+                if (result) {
+                    const text = result.getText ? result.getText() : String(result);
+                    document.getElementById(targetFieldId).value = text;
+                    this.stopScan();
+                    // Auto-advance: after scanning PN, move focus to SN field
+                    if (targetFieldId === 'part-number') {
+                        setTimeout(() => document.getElementById('serial-number').focus(), 300);
+                    }
+                }
+            }
+        ).catch(() => {
+            Screens.showError('Could not access camera for scanning. Check camera permissions.');
+            this.stopScan();
+        });
+    },
+
+    // Stop scanner and release camera stream
+    stopScan() {
+        if (this._scannerReader) {
+            try { this._scannerReader.reset(); } catch (e) {}
+            this._scannerReader = null;
+        }
+        // Fully release the camera track so the main camera can start later
+        const video = document.getElementById('scanner-video');
+        if (video && video.srcObject) {
+            video.srcObject.getTracks().forEach(t => t.stop());
+            video.srcObject = null;
+        }
+        document.getElementById('scanner-modal').classList.add('hidden');
     },
 
     // Show a yellow focus indicator at the tapped position

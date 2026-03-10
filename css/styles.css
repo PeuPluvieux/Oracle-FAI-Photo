@@ -189,6 +189,51 @@
     background: rgba(255, 255, 255, 0.5);
 }
 
+/* Barcode scanner modal */
+.scanner-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.scanner-guide {
+    position: relative;
+    width: 280px;
+    height: 130px;
+    border: 2px solid rgba(251, 146, 60, 0.9);
+    border-radius: 8px;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
+    overflow: hidden;
+}
+
+.scanner-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(to right, transparent, rgba(251, 146, 60, 0.95), transparent);
+    animation: scan-sweep 1.8s ease-in-out infinite;
+}
+
+@keyframes scan-sweep {
+    0%   { top: 0; }
+    50%  { top: calc(100% - 2px); }
+    100% { top: 0; }
+}
+
+.scanner-hint {
+    margin-top: 28px;
+    color: white;
+    font-size: 0.875rem;
+    text-align: center;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+    pointer-events: none;
+}
+
 /* Loading spinner */
 .spinner {
     border: 3px solid rgba(255, 255, 255, 0.3);

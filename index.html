@@ -6,6 +6,7 @@
     <title>Oracle FAI Photos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
     <link rel="stylesheet" href="css/styles.css">
     <script>
         tailwind.config = {
@@ -104,14 +105,30 @@
             <div class="space-y-4 mb-6">
                 <div>
                     <label for="part-number" class="block text-sm font-medium mb-2">Part Number (PN) <span class="text-gray-500 font-normal">- Optional</span></label>
-                    <input type="text" id="part-number" placeholder="e.g., 7628112-33067"
-                           class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-oracle-accent">
+                    <div class="flex gap-2">
+                        <input type="text" id="part-number" placeholder="e.g., 7628112-33067"
+                               class="flex-1 px-4 py-3 rounded-lg bg-gray-800 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-oracle-accent">
+                        <button id="scan-pn-btn" class="bg-oracle-secondary hover:bg-oracle-accent text-white px-4 rounded-lg transition-all flex items-center gap-2 text-sm font-medium whitespace-nowrap">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V6a2 2 0 012-2h2M4 16v2a2 2 0 002 2h2M16 4h2a2 2 0 012 2v2M16 20h2a2 2 0 002-2v-2"/>
+                            </svg>
+                            Scan
+                        </button>
+                    </div>
                 </div>
 
                 <div>
                     <label for="serial-number" class="block text-sm font-medium mb-2">Serial Number (SN) <span class="text-gray-500 font-normal">- Optional</span></label>
-                    <input type="text" id="serial-number" placeholder="e.g., 2602HC8001"
-                           class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-oracle-accent">
+                    <div class="flex gap-2">
+                        <input type="text" id="serial-number" placeholder="e.g., 2602HC8001"
+                               class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-oracle-accent">
+                        <button id="scan-sn-btn" class="bg-oracle-secondary hover:bg-oracle-accent text-white px-4 rounded-lg transition-all flex items-center gap-2 text-sm font-medium whitespace-nowrap">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V6a2 2 0 012-2h2M4 16v2a2 2 0 002 2h2M16 4h2a2 2 0 012 2v2M16 20h2a2 2 0 002-2v-2"/>
+                            </svg>
+                            Scan
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -363,6 +380,27 @@
             <button id="error-close-btn" class="bg-oracle-secondary hover:bg-oracle-accent text-white font-semibold py-2 px-6 rounded-lg transition-all w-full">
                 OK
             </button>
+        </div>
+    </div>
+
+    <!-- Barcode Scanner Modal -->
+    <div id="scanner-modal" class="hidden fixed inset-0 bg-black z-[70] flex flex-col">
+        <div class="bg-oracle-primary p-4 flex items-center justify-between">
+            <h3 id="scanner-title" class="text-lg font-semibold">Scan Barcode</h3>
+            <button id="scanner-close-btn" class="text-white hover:text-oracle-accent transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="flex-1 relative overflow-hidden">
+            <video id="scanner-video" class="w-full h-full object-cover" autoplay playsinline muted></video>
+            <div class="scanner-overlay">
+                <div class="scanner-guide">
+                    <div class="scanner-line"></div>
+                </div>
+                <p class="scanner-hint">Align barcode within the frame</p>
+            </div>
         </div>
     </div>
 
