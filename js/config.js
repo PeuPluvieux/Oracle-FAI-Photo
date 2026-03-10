@@ -23,7 +23,7 @@ const CONFIG = {
     // ===========================================
     // PRETEST FAI - Default Photos (Always taken)
     // ===========================================
-    // Sequenced: FRONT full→top→bottom, SIDES, REAR full→top→bottom, then LABELS/MISC
+    // Sequenced: FRONT → REAR → SIDES → LABELS
     pretestDefaultPhotos: [
         // --- FRONT OF RACK ---
         // Full Rack
@@ -39,16 +39,6 @@ const CONFIG = {
         { id: 'FR8', name: 'Front Rack - Bottom Half 45 Right', template: 'FR8.png', orientation: 'portrait', location: 'front', section: 'bottom_half' },
         { id: 'FR9', name: 'Front Rack - Bottom Half 45 Left', template: 'FR9.png', orientation: 'portrait', location: 'front', section: 'bottom_half' },
 
-        // --- LEFT SIDE ---
-        { id: 'LS1', name: 'Left Side - Full', template: 'LS1.png', orientation: 'portrait', location: 'left_side', section: 'full' },
-        { id: 'LS2', name: 'Left Side - Top Half', template: 'LS2.png', orientation: 'portrait', location: 'left_side', section: 'top_half' },
-        { id: 'LS3', name: 'Left Side - Bottom Half', template: 'LS3.png', orientation: 'portrait', location: 'left_side', section: 'bottom_half' },
-
-        // --- RIGHT SIDE ---
-        { id: 'RS1', name: 'Right Side - Full', template: 'RS1.png', orientation: 'portrait', location: 'right_side', section: 'full' },
-        { id: 'RS2', name: 'Right Side - Top Half', template: 'RS2.png', orientation: 'portrait', location: 'right_side', section: 'top_half' },
-        { id: 'RS3', name: 'Right Side - Bottom Half', template: 'RS3.png', orientation: 'portrait', location: 'right_side', section: 'bottom_half' },
-
         // --- REAR OF RACK ---
         // Full Rack
         { id: 'RR1', name: 'Rear Rack - Full Straight On', template: 'RR1.png', orientation: 'portrait', location: 'rear', section: 'full_rack' },
@@ -63,17 +53,28 @@ const CONFIG = {
         { id: 'RR8', name: 'Rear Rack - Bottom Half 45 Right', template: 'RR8.png', orientation: 'portrait', location: 'rear', section: 'bottom_half' },
         { id: 'RR9', name: 'Rear Rack - Bottom Half 45 Left', template: 'RR9.png', orientation: 'portrait', location: 'rear', section: 'bottom_half' },
 
-        // --- LABELS & MISC (default) ---
-        { id: 'SN', name: 'Serial Number Label', template: null, orientation: 'landscape', location: 'labels', section: 'serial' },
-        { id: 'LB1', name: 'Label 1', template: 'LB.png', orientation: 'landscape', location: 'labels', section: 'labels' },
-        { id: 'LB2', name: 'Label 2', template: 'LB.png', orientation: 'landscape', location: 'labels', section: 'labels' },
-        { id: 'LB3', name: 'Label 3', template: 'LB.png', orientation: 'landscape', location: 'labels', section: 'labels' },
+        // --- PDUs (rear) ---
         { id: 'PDU1', name: 'PDU Left - Photo 1', template: 'PDUL.png', orientation: 'portrait', location: 'rear', section: 'pdu' },
         { id: 'PDU2', name: 'PDU Left - Photo 2', template: 'PDUL.png', orientation: 'portrait', location: 'rear', section: 'pdu' },
         { id: 'PDU3', name: 'PDU Left - Photo 3', template: 'PDUL.png', orientation: 'portrait', location: 'rear', section: 'pdu' },
         { id: 'PDU4', name: 'PDU Right - Photo 1', template: 'PDUR.png', orientation: 'portrait', location: 'rear', section: 'pdu' },
         { id: 'PDU5', name: 'PDU Right - Photo 2', template: 'PDUR.png', orientation: 'portrait', location: 'rear', section: 'pdu' },
-        { id: 'PDU6', name: 'PDU Right - Photo 3', template: 'PDUR.png', orientation: 'portrait', location: 'rear', section: 'pdu' }
+        { id: 'PDU6', name: 'PDU Right - Photo 3', template: 'PDUR.png', orientation: 'portrait', location: 'rear', section: 'pdu' },
+
+        // --- LEFT SIDE ---
+        { id: 'LS1', name: 'Left Side - Full', template: 'LS1.png', orientation: 'portrait', location: 'left_side', section: 'full' },
+        { id: 'LS2', name: 'Left Side - Top Half', template: 'LS2.png', orientation: 'portrait', location: 'left_side', section: 'top_half' },
+        { id: 'LS3', name: 'Left Side - Bottom Half', template: 'LS3.png', orientation: 'portrait', location: 'left_side', section: 'bottom_half' },
+
+        // --- RIGHT SIDE ---
+        { id: 'RS1', name: 'Right Side - Full', template: 'RS1.png', orientation: 'portrait', location: 'right_side', section: 'full' },
+        { id: 'RS2', name: 'Right Side - Top Half', template: 'RS2.png', orientation: 'portrait', location: 'right_side', section: 'top_half' },
+        { id: 'RS3', name: 'Right Side - Bottom Half', template: 'RS3.png', orientation: 'portrait', location: 'right_side', section: 'bottom_half' },
+
+        // --- LABELS ---
+        { id: 'LB1', name: 'Label 1', template: 'LB.png', orientation: 'landscape', location: 'labels', section: 'labels' },
+        { id: 'LB2', name: 'Label 2', template: 'LB.png', orientation: 'landscape', location: 'labels', section: 'labels' },
+        { id: 'LB3', name: 'Label 3', template: 'LB.png', orientation: 'landscape', location: 'labels', section: 'labels' }
     ],
 
     // ===========================================
@@ -281,49 +282,58 @@ const SESSION = {
     },
 
     // Build Pretest photo queue with proper sequencing
+    // Order: FRONT → REAR → SIDES → LABELS
     _buildPretestQueue() {
         const defaults = CONFIG.pretestDefaultPhotos;
+        const comps = this.components;
 
-        // Collect all component photos (front and back separately)
-        let allFrontComponents = [];
-        let allBackComponents = [];
+        // Generate component photos in explicit order
+        // Front section: switches → servers → cableBend (after servers) → corningEdge
+        // Labels section: cableLabels (last, with LB photos)
+        const frontOrder  = ['switches', 'servers', 'cableBend', 'corningEdge'];
+        const labelOrder  = ['cableLabels'];
 
-        for (const [typeKey, qty] of Object.entries(this.components)) {
+        let frontComponents = [];
+        let backComponents  = [];
+        let labelComponents = [];
+
+        for (const typeKey of frontOrder) {
+            const qty = comps[typeKey] || 0;
             if (qty > 0) {
                 const photos = CONFIG.generateComponentPhotos(typeKey, qty);
-                allFrontComponents = allFrontComponents.concat(photos.front);
-                allBackComponents = allBackComponents.concat(photos.back);
+                frontComponents = frontComponents.concat(photos.front);
+                backComponents  = backComponents.concat(photos.back);
+            }
+        }
+
+        for (const typeKey of labelOrder) {
+            const qty = comps[typeKey] || 0;
+            if (qty > 0) {
+                const photos = CONFIG.generateComponentPhotos(typeKey, qty);
+                labelComponents = labelComponents.concat(photos.front);
             }
         }
 
         // === SEQUENCE ===
-        // 1. FRONT: FR1-FR9 (full → top → bottom)
+        // 1. FRONT: FR1-FR9
         this._addPhotos(defaults.filter(p => p.id.startsWith('FR')));
+        // 2. FRONT COMPONENTS: SW → SV → CB → CE
+        this._addPhotos(frontComponents);
 
-        // 2. FRONT COMPONENTS (switches → servers → corning edge, top to bottom)
-        this._addPhotos(allFrontComponents);
-
-        // 3. LEFT SIDE: LS1-LS3
-        this._addPhotos(defaults.filter(p => p.id.startsWith('LS')));
-
-        // 4. RIGHT SIDE: RS1-RS3
-        this._addPhotos(defaults.filter(p => p.id.startsWith('RS')));
-
-        // 5. REAR: RR1-RR9 (full → top → bottom)
+        // 3. REAR: RR1-RR9
         this._addPhotos(defaults.filter(p => p.id.startsWith('RR')));
-
-        // 6. REAR COMPONENTS (back switches → back servers)
-        this._addPhotos(allBackComponents);
-
-        // 7. PDUs (at the rear)
+        // 4. REAR COMPONENTS: BSW → BSV
+        this._addPhotos(backComponents);
+        // 5. PDUs
         this._addPhotos(defaults.filter(p => p.id.startsWith('PDU')));
 
-        // 8. LABELS & MISC: SN, LB1-LB3
-        this._addPhotos(defaults.filter(p => p.id === 'SN'));
-        this._addPhotos(defaults.filter(p => p.id.startsWith('LB')));
+        // 6. SIDES: Left → Right
+        this._addPhotos(defaults.filter(p => p.id.startsWith('LS')));
+        this._addPhotos(defaults.filter(p => p.id.startsWith('RS')));
 
-        // 9. CABLE LABELS & BEND TESTS (from components)
-        // These are already included in allFrontComponents since CL/CB have no back
+        // 7. LABELS: LB1-3 → CL cable labels
+        this._addPhotos(defaults.filter(p => p.id.startsWith('LB')));
+        this._addPhotos(labelComponents);
     },
 
     // Build Packout photo queue
