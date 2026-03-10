@@ -216,11 +216,13 @@ const App = {
 
         document.getElementById('gallery-close-btn').addEventListener('click', () => {
             Screens.closeGallery();
+            Camera.resume();
         });
 
         // Photo preview modal
         document.getElementById('preview-close-btn').addEventListener('click', () => {
             Screens.closePhotoPreview();
+            Camera.resume();
         });
 
         document.getElementById('preview-retake-btn').addEventListener('click', () => {
@@ -439,6 +441,7 @@ const App = {
         Screens.closePhotoPreview();
         Screens.closeGallery();
         Screens.updateCameraUI();
+        Camera.resume();
     },
 
     // Retake a single photo directly from the gallery grid
@@ -462,6 +465,7 @@ const App = {
         // Close gallery and update camera UI to show the retake photo's template
         Screens.closeGallery();
         Screens.updateCameraUI();
+        Camera.resume();
     },
 
     // Retake selected photos (from review screen)

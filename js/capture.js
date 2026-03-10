@@ -23,15 +23,37 @@ const Capture = {
             throw new Error('Camera is not active');
         }
 
-        // Use full camera resolution - no aspect ratio cropping
         const videoWidth = video.videoWidth;
         const videoHeight = video.videoHeight;
 
-        this.canvas.width = videoWidth;
-        this.canvas.height = videoHeight;
+        // Crop to portrait 4:3 (3:4 ratio) centered from the video frame
+        // - Landscape video (e.g. 16:9): trim sides, keep full height
+        // - Portrait video (e.g. 9:16): trim top/bottom, keep full width
+        const targetRatio = 3 / 4;
+        const videoRatio = videoWidth / videoHeight;
 
-        // Draw full video frame to canvas
-        this.ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
+        let sx, sy, sw, sh;
+        if (videoRatio > targetRatio) {
+            // Wider than 3:4 → crop sides
+            sh = videoHeight;
+            sw = Math.round(videoHeight * targetRatio);
+            sx = Math.round((videoWidth - sw) / 2);
+            sy = 0;
+        } else if (videoRatio < targetRatio) {
+            // Taller than 3:4 → crop top/bottom
+            sw = videoWidth;
+            sh = Math.round(videoWidth / targetRatio);
+            sx = 0;
+            sy = Math.round((videoHeight - sh) / 2);
+        } else {
+            sx = 0; sy = 0; sw = videoWidth; sh = videoHeight;
+        }
+
+        this.canvas.width = sw;
+        this.canvas.height = sh;
+
+        // Draw center-cropped 3:4 frame to canvas
+        this.ctx.drawImage(video, sx, sy, sw, sh, 0, 0, sw, sh);
 
         // Convert to data URL
         const dataUrl = this.canvas.toDataURL(CONFIG.photo.format, CONFIG.photo.quality);

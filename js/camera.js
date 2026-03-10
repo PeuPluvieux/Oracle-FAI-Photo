@@ -173,6 +173,18 @@ const Camera = {
         return this.stream !== null && this.stream.active;
     },
 
+    // Ensure video is playing - call after closing any modal overlay on iOS
+    // Stream may still be active but video element can pause under a modal
+    async resume() {
+        if (!this.isActive()) {
+            // Stream was lost - full restart
+            await this.start(this.currentDeviceId);
+        } else if (this.videoElement && this.videoElement.paused) {
+            // Stream fine but video paused - just unpause
+            try { await this.videoElement.play(); } catch (e) {}
+        }
+    },
+
     // Get video dimensions
     getDimensions() {
         if (!this.videoElement) return { width: 0, height: 0 };
