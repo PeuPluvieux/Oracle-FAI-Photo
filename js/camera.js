@@ -87,19 +87,6 @@ const Camera = {
 
             this.stream = await navigator.mediaDevices.getUserMedia(constraints);
             this.videoElement.srcObject = this.stream;
-
-            // Add listener BEFORE play() so we never miss the loadedmetadata event.
-            // Resizes the viewport to exactly match the delivered video ratio —
-            // no cropping, no black bars, same FOV as the native camera in 4:3 mode.
-            this.videoElement.addEventListener('loadedmetadata', () => {
-                const w = this.videoElement.videoWidth;
-                const h = this.videoElement.videoHeight;
-                if (w > 0 && h > 0) {
-                    const viewport = document.getElementById('camera-viewport');
-                    if (viewport) viewport.style.aspectRatio = `${w} / ${h}`;
-                }
-            }, { once: true });
-
             await this.videoElement.play();
 
             // Update current device ID
