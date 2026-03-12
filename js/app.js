@@ -178,6 +178,18 @@ const App = {
 
         // Camera screen
         document.getElementById('camera-back-btn').addEventListener('click', () => {
+            // Warn if photos have been captured - going back then hitting "Start Camera"
+            // calls Storage.clearAll() which would delete everything
+            if (SESSION.capturedPhotos.length > 0) {
+                if (!confirm(`You have ${SESSION.capturedPhotos.length} photo(s) saved.\n\nGoing back will NOT delete them — you can resume this session from the home screen.\n\nContinue?`)) {
+                    return;
+                }
+            }
+            // Clear any pending retake state so it doesn't carry over
+            this._retakeIndex = null;
+            this._retakeQueueIndex = null;
+            this._savedPhotoIndex = null;
+            this._capturing = false;
             Camera.stop();
             Screens.show('info');
         });
@@ -338,11 +350,14 @@ const App = {
 
     // Capture photo
     async capturePhoto() {
+        // Lock prevents double-tap or rapid presses firing two captures at once
+        if (this._capturing) return;
         if (!Camera.isActive()) {
             Screens.showError('Camera is not active');
             return;
         }
 
+        this._capturing = true;
         try {
             // Check if we're in retake mode
             if (this._retakeIndex !== null) {
@@ -396,6 +411,9 @@ const App = {
         } catch (error) {
             console.error('Capture error:', error);
             Screens.showError('Failed to capture photo. Please try again.');
+        } finally {
+            // Always release lock so the next capture can proceed
+            this._capturing = false;
         }
     },
 
@@ -412,6 +430,9 @@ const App = {
             Screens.renderPhotosGrid();
         }
     },
+
+    // Capture lock - prevents double-tap firing two captures simultaneously
+    _capturing: false,
 
     // Retake state
     _retakeIndex: null,       // Index in capturedPhotos being retaken
