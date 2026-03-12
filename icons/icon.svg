@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#1a365d"/>
+
+  <!-- Camera body -->
+  <rect x="64" y="168" width="384" height="244" rx="28" fill="#2b6cb0"/>
+
+  <!-- Viewfinder bump -->
+  <rect x="192" y="140" width="128" height="42" rx="12" fill="#2b6cb0"/>
+
+  <!-- Flash dot -->
+  <circle cx="112" cy="216" r="14" fill="#4299e1"/>
+
+  <!-- Shutter button -->
+  <circle cx="368" cy="168" r="18" fill="#4299e1"/>
+
+  <!-- Lens: outer ring -->
+  <circle cx="252" cy="296" r="90" fill="#1a365d" stroke="#4299e1" stroke-width="10"/>
+  <!-- Lens: mid ring -->
+  <circle cx="252" cy="296" r="62" fill="#1a365d" stroke="#4299e1" stroke-width="4" opacity="0.5"/>
+  <!-- Lens: center -->
+  <circle cx="252" cy="296" r="34" fill="#4299e1"/>
+  <!-- Lens: shine -->
+  <circle cx="236" cy="280" r="10" fill="white" opacity="0.35"/>
+
+  <!-- FAI label -->
+  <text x="252" y="472" text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="52" font-weight="900"
+        fill="#4299e1" letter-spacing="6">FAI</text>
+</svg>

@@ -105,43 +105,84 @@ const Screens = {
         return values;
     },
 
+    // Map photo location → one of four section keys
+    _sectionForLocation(location) {
+        if (!location) return null;
+        if (location === 'front')                                    return 'front';
+        if (location === 'rear')                                     return 'rear';
+        if (location === 'left_side' || location === 'right_side')   return 'sides';
+        if (location === 'labels')                                   return 'labels';
+        return null;
+    },
+
+    // Light up the section progress pills in the header
+    _updateSectionPills(currentPhoto) {
+        const order  = ['front', 'rear', 'sides', 'labels'];
+        const elMap  = {
+            front:  document.getElementById('sect-front'),
+            rear:   document.getElementById('sect-rear'),
+            sides:  document.getElementById('sect-sides'),
+            labels: document.getElementById('sect-labels')
+        };
+        const curSec = currentPhoto ? this._sectionForLocation(currentPhoto.location) : null;
+        const curIdx = order.indexOf(curSec);
+
+        order.forEach((sec, idx) => {
+            const el = elMap[sec];
+            if (!el) return;
+            el.className = 'section-pill';
+            if (sec === curSec)    el.classList.add('active');
+            else if (idx < curIdx) el.classList.add('done');
+        });
+    },
+
     // Update camera screen UI
     updateCameraUI() {
         const currentPhoto = SESSION.getCurrentPhoto();
         const progress = SESSION.getProgress();
 
-        // Update progress numbers
-        document.getElementById('current-photo').textContent = progress.current;
-        document.getElementById('total-photos').textContent = progress.total;
+        // Progress numbers
+        document.getElementById('current-photo').textContent    = progress.current;
+        document.getElementById('total-photos').textContent     = progress.total;
         document.getElementById('photos-remaining').textContent = progress.total - progress.current;
 
-        // Update progress bar
+        // Progress bar
         document.getElementById('progress-bar').style.width = `${progress.percentage}%`;
 
-        // Show/hide Finish Early button (visible once at least 1 photo captured)
+        // Finish Early button
         document.getElementById('finish-early-btn').classList.toggle('hidden', SESSION.capturedPhotos.length === 0);
 
-        // Update FAI mode badge
-        const modeBadge = document.getElementById('fai-mode-badge');
-        modeBadge.textContent = SESSION.mode === 'pretest' ? 'Pretest' : 'Packout';
+        // Gallery count badge
+        const count   = SESSION.capturedPhotos.length;
+        const countEl = document.getElementById('gallery-count');
+        if (countEl) {
+            countEl.textContent = count;
+            countEl.classList.toggle('hidden', count === 0);
+            countEl.classList.toggle('flex',   count > 0);
+        }
 
-        // Update current photo info
+        // Mode badge
+        document.getElementById('fai-mode-badge').textContent = SESSION.mode === 'pretest' ? 'Pretest' : 'Packout';
+
         if (currentPhoto) {
-            document.getElementById('current-photo-name').textContent =
-                `${currentPhoto.id} - ${currentPhoto.name}`;
+            document.getElementById('current-photo-name').textContent = `${currentPhoto.id} - ${currentPhoto.name}`;
 
-            // Format location text
             let locationText = '';
-            if (currentPhoto.location) {
-                locationText = currentPhoto.location.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            }
-            if (currentPhoto.section) {
-                locationText += ' - ' + currentPhoto.section.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            }
+            if (currentPhoto.location) locationText = currentPhoto.location.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            if (currentPhoto.section)  locationText += ' · ' + currentPhoto.section.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
             document.getElementById('current-photo-location').textContent = locationText;
 
-            // Update template overlay for current photo
+            // Section pills
+            this._updateSectionPills(currentPhoto);
+
+            // Landscape rotation prompt
+            const isLandscape = currentPhoto.orientation === 'landscape';
+            const prompt = document.getElementById('landscape-prompt');
+            if (prompt) prompt.classList.toggle('hidden', !isLandscape);
+
             this.renderTemplateOverlay(currentPhoto);
+            // Re-apply current opacity setting after overlay re-render
+            if (typeof App !== 'undefined') App._applyTemplateOpacity();
         }
     },
 
@@ -174,7 +215,10 @@ const Screens = {
         const templateImg = document.createElement('img');
         templateImg.src = `${CONFIG.templatePath}${photo.template}`;
         templateImg.className = 'w-full h-full object-contain';
-        templateImg.style.opacity = '0.5';
+        // Use saved opacity preference (App may not be defined yet during early init)
+        const savedOpacity = (typeof App !== 'undefined' && App._templateOpacity !== undefined)
+            ? App._templateOpacity : 0.5;
+        templateImg.style.opacity = savedOpacity;
         templateImg.alt = `Template: ${photo.id}`;
 
         // Rotate landscape templates 90deg so they display in the portrait viewport
@@ -218,21 +262,19 @@ const Screens = {
         }
         document.getElementById('review-pn-sn').textContent = pnSn || 'No PN/SN specified';
 
+        const countEl = document.getElementById('review-photo-count');
+        if (countEl) countEl.textContent = `${SESSION.capturedPhotos.length} photo${SESSION.capturedPhotos.length !== 1 ? 's' : ''} captured`;
+
         // Render each captured photo
         SESSION.capturedPhotos.forEach((photo, index) => {
             const card = document.createElement('div');
             card.className = 'photo-card';
             card.dataset.index = index;
             card.innerHTML = `
-                <img src="${photo.dataUrl}" alt="${photo.id}">
+                <img src="${photo.dataUrl}" alt="${photo.id}" loading="lazy">
                 <div class="photo-label">${photo.id}</div>
             `;
-
-            // Toggle selection on click
-            card.addEventListener('click', () => {
-                card.classList.toggle('selected');
-            });
-
+            card.addEventListener('click', () => card.classList.toggle('selected'));
             container.appendChild(card);
         });
     },

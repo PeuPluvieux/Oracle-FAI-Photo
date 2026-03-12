@@ -9,17 +9,18 @@ const App = {
     async init() {
         console.log('Oracle FAI Photos - Initializing...');
 
-        // Initialize modules
         Capture.init();
         await Storage.init();
-
-        // Setup event listeners
         this.setupEventListeners();
-
-        // Check for a saved session to resume
         await this.checkForResume();
 
-        // Warn before leaving mid-session
+        // Restore saved template opacity
+        const savedOpacity = localStorage.getItem('templateOpacity');
+        if (savedOpacity !== null) {
+            this._templateOpacity = parseFloat(savedOpacity);
+            this._applyTemplateOpacity();
+        }
+
         window.addEventListener('beforeunload', (e) => {
             if (SESSION.capturedPhotos.length > 0 && Screens.currentScreen === 'camera') {
                 e.preventDefault();
@@ -88,6 +89,7 @@ const App = {
             await Camera.start();
             Screens.updateCameraUI();
             Screens.updateLastPhotoThumb();
+            this.acquireWakeLock();
         } catch (error) {
             console.error('Camera error on resume:', error);
             Screens.showError('Unable to access camera. Please ensure camera permissions are granted.');
@@ -190,7 +192,9 @@ const App = {
             this._retakeQueueIndex = null;
             this._savedPhotoIndex = null;
             this._capturing = false;
+            this._resetSkipBtn();
             Camera.stop();
+            this.releaseWakeLock();
             Screens.show('info');
         });
 
@@ -217,9 +221,18 @@ const App = {
             this.capturePhoto();
         });
 
+        // Skip button: two-tap protection — first tap arms it, second tap within 2s skips
         document.getElementById('skip-btn').addEventListener('click', () => {
-            this.skipPhoto();
+            this.handleSkipTap();
         });
+
+        // Template opacity toggle
+        document.getElementById('opacity-toggle-btn').addEventListener('click', () => {
+            this.cycleTemplateOpacity();
+        });
+
+        // Pinch-to-zoom on camera preview
+        this._setupPinchZoom();
 
         // Gallery button (view captured photos mid-session)
         document.getElementById('gallery-btn').addEventListener('click', () => {
@@ -341,6 +354,7 @@ const App = {
             await Camera.init();
             await Camera.start();
             Screens.updateCameraUI();
+            this.acquireWakeLock();
         } catch (error) {
             console.error('Camera error:', error);
             Screens.showError('Unable to access camera. Please ensure camera permissions are granted.');
@@ -361,29 +375,22 @@ const App = {
         try {
             // Check if we're in retake mode
             if (this._retakeIndex !== null) {
-                // Retake: capture and replace the specific photo
                 const photoInfo = SESSION.photoQueue[this._retakeQueueIndex];
-                const dataUrl = Capture.capturePhoto();
 
-                const retakenPhoto = {
-                    ...photoInfo,
-                    dataUrl: dataUrl,
-                    timestamp: Date.now()
-                };
+                // Capture full-res (for IDB) + thumbnail (for memory)
+                const { fullDataUrl, thumbDataUrl } = Capture.captureRetake();
 
+                const retakenPhoto = { ...photoInfo, dataUrl: thumbDataUrl, timestamp: Date.now() };
                 SESSION.capturedPhotos[this._retakeIndex] = retakenPhoto;
 
-                // Update in IndexedDB
-                Storage.savePhoto(retakenPhoto);
+                Storage.savePhoto({ ...retakenPhoto, dataUrl: fullDataUrl });
                 Storage.saveSession(SESSION.toJSON());
-
                 console.log('Photo retaken:', photoInfo.id);
 
-                // Exit retake mode - restore original position
                 SESSION.currentPhotoIndex = this._savedPhotoIndex;
-                this._retakeIndex = null;
+                this._retakeIndex     = null;
                 this._retakeQueueIndex = null;
-                this._savedPhotoIndex = null;
+                this._savedPhotoIndex  = null;
 
                 Screens.updateCameraUI();
                 Screens.updateLastPhotoThumb();
@@ -392,6 +399,7 @@ const App = {
 
             const photo = Capture.captureAndStore();
             console.log('Photo captured:', photo.filename);
+            this._resetSkipBtn();
 
             // Update thumbnail
             Screens.updateLastPhotoThumb();
@@ -531,6 +539,7 @@ const App = {
         }
 
         Camera.stop();
+        this.releaseWakeLock();
         Screens.show('review');
         Screens.renderPhotosGrid();
     },
@@ -589,20 +598,150 @@ const App = {
 
     // Show a yellow focus indicator at the tapped position
     showFocusIndicator(clientX, clientY) {
-        // Remove any existing indicator
         const existing = document.querySelector('.focus-indicator');
         if (existing) existing.remove();
-
         const indicator = document.createElement('div');
         indicator.className = 'focus-indicator';
         indicator.style.left = clientX + 'px';
-        indicator.style.top = clientY + 'px';
+        indicator.style.top  = clientY + 'px';
         document.body.appendChild(indicator);
+        indicator.addEventListener('animationend', () => indicator.remove());
+    },
 
-        // Remove after animation completes
-        indicator.addEventListener('animationend', () => {
-            indicator.remove();
-        });
+    // ── Screen Wake Lock ─────────────────────────────────────────────────
+    _wakeLock: null,
+
+    async acquireWakeLock() {
+        if (!('wakeLock' in navigator)) return;
+        try {
+            this._wakeLock = await navigator.wakeLock.request('screen');
+            // Re-acquire if page becomes visible again after being hidden
+            document.addEventListener('visibilitychange', this._reacquireWakeLock.bind(this), { once: true });
+        } catch (e) { /* wake lock not granted – screen may still dim */ }
+    },
+
+    async _reacquireWakeLock() {
+        if (document.visibilityState === 'visible' && Screens.currentScreen === 'camera') {
+            await this.acquireWakeLock();
+        }
+    },
+
+    releaseWakeLock() {
+        if (this._wakeLock) {
+            this._wakeLock.release().catch(() => {});
+            this._wakeLock = null;
+        }
+    },
+
+    // ── Template opacity toggle ──────────────────────────────────────────
+    _templateOpacity: 0.5,      // default 50%
+    _opacitySteps: [0.5, 0.7, 0.2, 0],  // 50% → 70% → 20% → hidden → back
+
+    cycleTemplateOpacity() {
+        const idx = this._opacitySteps.indexOf(this._templateOpacity);
+        this._templateOpacity = this._opacitySteps[(idx + 1) % this._opacitySteps.length];
+        this._applyTemplateOpacity();
+        localStorage.setItem('templateOpacity', this._templateOpacity);
+    },
+
+    _applyTemplateOpacity() {
+        const overlay = document.getElementById('template-overlay');
+        if (overlay) {
+            overlay.querySelectorAll('img').forEach(img => {
+                img.style.opacity = this._templateOpacity;
+            });
+            // Also hide/show the entire overlay div for opacity = 0
+            overlay.style.opacity = this._templateOpacity === 0 ? '0' : '1';
+        }
+        const label = document.getElementById('opacity-label');
+        if (label) {
+            const pct = Math.round(this._templateOpacity * 100);
+            label.textContent = this._templateOpacity === 0 ? 'Off' : `${pct}%`;
+        }
+    },
+
+    // ── Skip button two-tap protection ───────────────────────────────────
+    _skipPending: false,
+    _skipTimer: null,
+
+    handleSkipTap() {
+        const btn = document.getElementById('skip-btn');
+        if (!this._skipPending) {
+            // First tap: arm the button
+            this._skipPending = true;
+            btn.textContent = 'Confirm?';
+            btn.classList.remove('skip-btn-idle');
+            btn.classList.add('skip-btn-confirm');
+            // Auto-reset after 2s if not confirmed
+            this._skipTimer = setTimeout(() => this._resetSkipBtn(), 2000);
+        } else {
+            // Second tap: actually skip
+            clearTimeout(this._skipTimer);
+            this._resetSkipBtn();
+            this.skipPhoto();
+        }
+    },
+
+    _resetSkipBtn() {
+        this._skipPending = false;
+        clearTimeout(this._skipTimer);
+        const btn = document.getElementById('skip-btn');
+        if (btn) {
+            btn.textContent = 'Skip';
+            btn.classList.remove('skip-btn-confirm');
+            btn.classList.add('skip-btn-idle');
+        }
+    },
+
+    // ── Pinch-to-zoom ────────────────────────────────────────────────────
+    _pinchStartDist: 0,
+    _pinchStartZoom: 1,
+
+    _setupPinchZoom() {
+        const preview = document.getElementById('camera-preview');
+
+        preview.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                this._pinchStartDist = this._touchDist(e.touches);
+                this._pinchStartZoom = Camera._zoomCurrent;
+            }
+        }, { passive: false });
+
+        preview.addEventListener('touchmove', (e) => {
+            if (e.touches.length !== 2) return;
+            e.preventDefault();
+
+            if (!Camera._zoomSupported) return;
+
+            const dist  = this._touchDist(e.touches);
+            const scale = dist / this._pinchStartDist;
+            const newZoom = Math.max(Camera._zoomMin,
+                            Math.min(Camera._zoomMax, this._pinchStartZoom * scale));
+
+            Camera.setZoom(newZoom);
+            this._showZoomIndicator(newZoom);
+        }, { passive: false });
+    },
+
+    _touchDist(touches) {
+        const dx = touches[0].clientX - touches[1].clientX;
+        const dy = touches[0].clientY - touches[1].clientY;
+        return Math.sqrt(dx * dx + dy * dy);
+    },
+
+    _zoomHideTimer: null,
+    _showZoomIndicator(zoom) {
+        const el = document.getElementById('zoom-indicator');
+        if (!el) return;
+        el.textContent = `${zoom.toFixed(1)}×`;
+        el.classList.remove('hidden');
+        el.style.opacity = '1';
+        clearTimeout(this._zoomHideTimer);
+        this._zoomHideTimer = setTimeout(() => {
+            el.style.opacity = '0';
+            setTimeout(() => el.classList.add('hidden'), 300);
+        }, 1500);
     }
 };
 

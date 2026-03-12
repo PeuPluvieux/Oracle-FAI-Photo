@@ -14,6 +14,11 @@ const Camera = {
     currentDeviceId: null,
     _visibilityHandler: null,
     _focusSupported: false,
+    // Zoom
+    _zoomSupported: false,
+    _zoomMin: 1,
+    _zoomMax: 1,
+    _zoomCurrent: 1,
 
     // Initialize camera module
     async init() {
@@ -100,8 +105,8 @@ const Camera = {
             const actualSettings = videoTrack.getSettings();
             console.log(`Camera started: ${videoTrack.label} - ${actualSettings.width}x${actualSettings.height}`);
 
-            // Check if tap-to-focus is supported by this camera
-            this._checkFocusSupport();
+            // Check device capabilities (focus + zoom)
+            this._checkCapabilities();
 
             // Install visibility handler for auto-recovery
             this._installVisibilityHandler();
@@ -197,34 +202,57 @@ const Camera = {
         };
     },
 
-    // Check if the active camera track supports tap-to-focus
-    _checkFocusSupport() {
+    // Check device capabilities: focus and zoom
+    _checkCapabilities() {
         this._focusSupported = false;
+        this._zoomSupported  = false;
+        this._zoomMin        = 1;
+        this._zoomMax        = 1;
+        this._zoomCurrent    = 1;
+
         if (!this.stream) return;
         const track = this.stream.getVideoTracks()[0];
         if (!track) return;
+
         try {
-            const capabilities = track.getCapabilities();
-            if (capabilities && capabilities.focusMode && capabilities.focusMode.includes('manual')) {
-                this._focusSupported = true;
+            const cap = track.getCapabilities();
+            if (cap) {
+                if (cap.focusMode && cap.focusMode.includes('manual')) {
+                    this._focusSupported = true;
+                }
+                if (cap.zoom) {
+                    this._zoomSupported = true;
+                    this._zoomMin = cap.zoom.min || 1;
+                    this._zoomMax = cap.zoom.max || 1;
+                    this._zoomCurrent = track.getSettings().zoom || 1;
+                }
             }
-        } catch (e) {
-            // getCapabilities not supported in this browser
-        }
-        console.log('Tap-to-focus supported:', this._focusSupported);
+        } catch (e) { /* getCapabilities not available */ }
+
+        console.log(`Zoom supported: ${this._zoomSupported} (${this._zoomMin}–${this._zoomMax})`);
+        console.log(`Focus supported: ${this._focusSupported}`);
     },
 
-    // Attempt hardware focus at normalized (x, y) coordinates (0-1 range)
+    // Apply a zoom level (clamped to device min/max)
+    async setZoom(level) {
+        if (!this._zoomSupported || !this.stream) return;
+        const track = this.stream.getVideoTracks()[0];
+        if (!track) return;
+
+        const clamped = Math.max(this._zoomMin, Math.min(this._zoomMax, level));
+        try {
+            await track.applyConstraints({ advanced: [{ zoom: clamped }] });
+            this._zoomCurrent = clamped;
+        } catch (e) { /* zoom constraint not accepted */ }
+    },
+
+    // Attempt hardware focus at normalised (x, y) coordinates (0–1)
     async focusAtPoint(x, y) {
         if (!this.stream) return;
         const track = this.stream.getVideoTracks()[0];
         if (!track) return;
         try {
-            await track.applyConstraints({
-                advanced: [{ pointOfInterest: { x, y } }]
-            });
-        } catch (e) {
-            // Hardware focus not supported - visual indicator still shows
-        }
+            await track.applyConstraints({ advanced: [{ pointOfInterest: { x, y } }] });
+        } catch (e) { /* visual indicator still shows even without hardware focus */ }
     }
 };

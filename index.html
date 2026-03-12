@@ -2,8 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Oracle FAI Photos</title>
+
+    <!-- PWA -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#1a365d">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FAI Photos">
+    <link rel="apple-touch-icon" href="./icons/icon.svg">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
@@ -31,6 +40,9 @@
     <!-- Login Screen -->
     <section id="login-screen" class="screen active min-h-screen flex flex-col items-center justify-center p-6">
         <div class="max-w-sm w-full">
+            <div class="flex justify-center mb-6">
+                <img src="./icons/icon.svg" alt="FAI Photos" class="w-20 h-20 rounded-2xl shadow-lg">
+            </div>
             <h1 class="text-3xl font-bold mb-2 text-center text-oracle-accent">Oracle FAI Photos</h1>
             <p class="text-gray-400 mb-8 text-center">Sign in to continue</p>
 
@@ -54,13 +66,16 @@
             </button>
         </div>
         <footer class="absolute bottom-4 text-gray-500 text-sm">
-            Oracle FAI Photos v1.0
+            Oracle FAI Photos v2.0
         </footer>
     </section>
 
     <!-- Landing Screen -->
     <section id="landing-screen" class="screen hidden min-h-screen flex flex-col items-center justify-center p-6">
         <div class="text-center max-w-md">
+            <div class="flex justify-center mb-6">
+                <img src="./icons/icon.svg" alt="FAI Photos" class="w-24 h-24 rounded-2xl shadow-xl">
+            </div>
             <h1 class="text-4xl font-bold mb-4 text-oracle-accent">Oracle FAI Photos</h1>
             <p class="text-gray-300 mb-8">First Article Inspection Photo Capture Tool</p>
             <button id="start-btn" class="bg-oracle-secondary hover:bg-oracle-accent text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300 transform hover:scale-105">
@@ -68,7 +83,7 @@
             </button>
         </div>
         <footer class="absolute bottom-4 text-gray-500 text-sm">
-            Oracle FAI Photos v1.0
+            Oracle FAI Photos v2.0
         </footer>
     </section>
 
@@ -143,25 +158,21 @@
                         <input type="number" id="qty-switches" min="0" max="20" value="0"
                                class="w-20 px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-center focus:outline-none focus:border-oracle-accent">
                     </div>
-
                     <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
                         <label for="qty-servers" class="text-sm font-medium">Server Groups</label>
                         <input type="number" id="qty-servers" min="0" max="20" value="0"
                                class="w-20 px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-center focus:outline-none focus:border-oracle-accent">
                     </div>
-
                     <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
                         <label for="qty-corning-edge" class="text-sm font-medium">Corning Edge</label>
                         <input type="number" id="qty-corning-edge" min="0" max="20" value="0"
                                class="w-20 px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-center focus:outline-none focus:border-oracle-accent">
                     </div>
-
                     <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
                         <label for="qty-cable-labels" class="text-sm font-medium">Cable Types</label>
                         <input type="number" id="qty-cable-labels" min="0" max="20" value="0"
                                class="w-20 px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-center focus:outline-none focus:border-oracle-accent">
                     </div>
-
                     <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
                         <label for="qty-cable-bend" class="text-sm font-medium">Cable Bend Tests</label>
                         <input type="number" id="qty-cable-bend" min="0" max="20" value="0"
@@ -173,7 +184,6 @@
             <!-- Packout Options -->
             <div id="packout-options" class="hidden mb-6">
                 <h3 class="text-lg font-semibold mb-3">Additional Options</h3>
-
                 <div class="space-y-3">
                     <label class="flex items-center gap-3 p-3 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700">
                         <input type="checkbox" id="door-branding" class="w-5 h-5 accent-oracle-accent">
@@ -203,118 +213,147 @@
 
     <!-- Camera Screen -->
     <section id="camera-screen" class="screen hidden h-screen overflow-hidden flex flex-col">
-        <!-- Header -->
-        <div class="bg-oracle-primary p-4">
-            <div class="flex items-center justify-between mb-2">
-                <button id="camera-back-btn" class="text-white hover:text-oracle-accent transition-colors">
+        <!-- Compact Header -->
+        <div class="bg-oracle-primary px-4 pt-3 pb-2">
+            <div class="flex items-center justify-between mb-1">
+                <button id="camera-back-btn" class="text-white hover:text-oracle-accent transition-colors flex-shrink-0">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
                 </button>
-                <div id="photo-progress" class="text-white font-medium">
-                    Photo <span id="current-photo">1</span> of <span id="total-photos">1</span>
-                </div>
-                <button id="finish-early-btn" class="hidden bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold py-1 px-3 rounded transition-all">
-                    Finish
-                </button>
-                <div id="fai-mode-badge" class="bg-oracle-accent px-3 py-1 rounded text-sm font-medium">
-                    Pretest
-                </div>
-            </div>
-            <!-- Progress bar -->
-            <div class="w-full bg-gray-700 rounded-full h-2">
-                <div id="progress-bar" class="bg-oracle-accent h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
-            </div>
-        </div>
 
-        <!-- Current photo name -->
-        <div class="bg-oracle-primary/50 px-4 py-2 text-center">
-            <div id="current-photo-name" class="text-lg font-semibold text-oracle-accent">
-                --
+                <!-- Section progress pills -->
+                <div id="section-progress" class="flex items-center gap-1 text-xs font-semibold overflow-hidden">
+                    <span id="sect-front"  class="section-pill">FRONT</span>
+                    <span class="text-gray-600">›</span>
+                    <span id="sect-rear"   class="section-pill">REAR</span>
+                    <span class="text-gray-600">›</span>
+                    <span id="sect-sides"  class="section-pill">SIDES</span>
+                    <span class="text-gray-600">›</span>
+                    <span id="sect-labels" class="section-pill">LABELS</span>
+                </div>
+
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    <button id="finish-early-btn" class="hidden bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold py-1 px-3 rounded transition-all">
+                        Finish
+                    </button>
+                    <div id="fai-mode-badge" class="bg-oracle-accent px-2 py-1 rounded text-xs font-medium">
+                        Pretest
+                    </div>
+                </div>
             </div>
-            <div id="current-photo-location" class="text-sm text-gray-300">
-                --
+
+            <!-- Photo info + count row -->
+            <div class="flex items-center justify-between mb-1">
+                <div class="min-w-0 flex-1 mr-2">
+                    <div id="current-photo-name" class="text-sm font-semibold text-oracle-accent truncate">--</div>
+                    <div id="current-photo-location" class="text-xs text-gray-400 truncate">--</div>
+                </div>
+                <div id="photo-progress" class="text-white text-xs font-medium flex-shrink-0">
+                    <span id="current-photo">1</span>/<span id="total-photos">1</span>
+                </div>
+            </div>
+
+            <!-- Progress bar -->
+            <div class="w-full bg-gray-700 rounded-full h-1.5">
+                <div id="progress-bar" class="bg-oracle-accent h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
             </div>
         </div>
 
         <!-- Camera Container -->
         <div class="flex-1 relative bg-black flex items-center justify-center overflow-hidden">
-            <!-- Camera viewport wrapper - maintains correct aspect ratio, centers video + overlay -->
+            <!-- Camera viewport: fixed 3:4 aspect ratio matching the 4:3 template -->
             <div id="camera-viewport" class="relative max-h-full max-w-full">
                 <video id="camera-preview" autoplay playsinline class="w-full h-full object-cover"></video>
                 <div id="template-overlay" class="absolute inset-0 pointer-events-none flex items-center justify-center">
-                    <!-- Template PNG will be rendered here -->
+                    <!-- Template PNG rendered here -->
+                </div>
+
+                <!-- Landscape rotation prompt (inside viewport) -->
+                <div id="landscape-prompt" class="hidden absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-10 pointer-events-none">
+                    <div class="rotate-phone-icon text-5xl mb-3">↩</div>
+                    <p class="text-white font-semibold text-base text-center px-4">Rotate phone for<br>landscape shot</p>
+                </div>
+
+                <!-- Template opacity toggle (top-left inside viewport) -->
+                <button id="opacity-toggle-btn" class="absolute top-3 left-3 z-20 bg-black/50 hover:bg-black/70 text-white rounded-lg px-2 py-1 text-xs font-medium transition-all flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                    <span id="opacity-label">50%</span>
+                </button>
+
+                <!-- Zoom level indicator (bottom-left inside viewport) -->
+                <div id="zoom-indicator" class="hidden absolute bottom-3 left-3 z-20 bg-black/60 text-white text-xs font-bold px-2 py-1 rounded">
+                    1.0×
                 </div>
             </div>
 
-            <!-- Camera Selection (outside viewport so it doesn't get clipped) -->
-            <div class="absolute top-4 right-4 z-10">
-                <select id="camera-select" class="bg-black/50 text-white border border-white/30 rounded px-3 py-2 text-sm">
-                    <option value="">Loading cameras...</option>
+            <!-- Camera Selection (outside viewport) -->
+            <div class="absolute top-3 right-3 z-10">
+                <select id="camera-select" class="bg-black/50 text-white border border-white/30 rounded px-2 py-1.5 text-xs">
+                    <option value="">Loading...</option>
                 </select>
             </div>
         </div>
 
         <!-- Controls -->
-        <div class="bg-oracle-primary p-4">
+        <div class="bg-oracle-primary px-4 py-3">
             <div class="flex items-center justify-between max-w-md mx-auto">
-                <!-- Last photo thumbnail / Gallery button -->
-                <button id="gallery-btn" class="w-12 h-12 rounded-lg overflow-hidden border-2 border-gray-500 bg-gray-800 flex items-center justify-center" title="View captured photos">
+                <!-- Gallery button with count badge -->
+                <button id="gallery-btn" class="relative w-12 h-12 rounded-xl overflow-hidden border-2 border-gray-500 bg-gray-800 flex items-center justify-center" title="View captured photos">
                     <img id="last-photo-thumb" class="w-full h-full object-cover hidden" alt="Last photo">
-                    <svg id="gallery-icon" class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg id="gallery-icon" class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
+                    <span id="gallery-count" class="hidden absolute -top-1 -right-1 bg-oracle-accent text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center leading-none"></span>
                 </button>
 
                 <!-- Capture button -->
-                <button id="capture-btn" class="w-20 h-20 bg-white rounded-full border-4 border-oracle-accent hover:border-oracle-secondary transition-all transform hover:scale-105 flex items-center justify-center">
+                <button id="capture-btn" class="w-20 h-20 bg-white rounded-full border-4 border-oracle-accent hover:border-oracle-secondary transition-all transform hover:scale-105 flex items-center justify-center shadow-lg">
                     <div class="w-16 h-16 bg-white rounded-full border-2 border-gray-300"></div>
                 </button>
 
-                <!-- Skip + remaining -->
+                <!-- Skip (protected) -->
                 <div class="flex flex-col items-center gap-1">
-                    <button id="skip-btn" class="text-gray-400 hover:text-white transition-colors text-sm">Skip</button>
+                    <button id="skip-btn" class="skip-btn-idle text-gray-400 text-sm font-medium px-3 py-1 rounded-lg transition-all">Skip</button>
                     <span class="text-gray-500 text-xs"><span id="photos-remaining">0</span> left</span>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Gallery Modal (view & retake captured photos mid-session) -->
+    <!-- Gallery Modal -->
     <div id="gallery-modal" class="hidden fixed inset-0 bg-black/90 z-50 flex flex-col">
-        <!-- Gallery header -->
-        <div class="bg-oracle-primary p-4 flex items-center justify-between">
-            <h3 class="text-lg font-semibold">Captured Photos</h3>
+        <div class="bg-oracle-primary px-4 py-3 flex items-center justify-between">
+            <h3 class="text-base font-semibold">Captured Photos</h3>
             <button id="gallery-close-btn" class="text-white hover:text-oracle-accent transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
         </div>
-
-        <!-- Gallery grid -->
         <div id="gallery-grid" class="flex-1 overflow-y-auto p-4">
-            <div class="grid grid-cols-2 gap-3" id="gallery-photos">
-                <!-- Photos rendered by JS -->
-            </div>
+            <div class="grid grid-cols-2 gap-3" id="gallery-photos"></div>
             <p id="gallery-empty" class="text-gray-500 text-center mt-8 hidden">No photos captured yet.</p>
         </div>
     </div>
 
-    <!-- Photo Preview Modal (single photo view with retake option) -->
+    <!-- Photo Preview Modal -->
     <div id="preview-modal" class="hidden fixed inset-0 bg-black/95 z-[60] flex flex-col">
-        <div class="flex items-center justify-between p-4">
-            <span id="preview-photo-id" class="text-oracle-accent font-semibold text-lg"></span>
+        <div class="flex items-center justify-between px-4 py-3">
+            <span id="preview-photo-id" class="text-oracle-accent font-semibold text-base"></span>
             <button id="preview-close-btn" class="text-white hover:text-oracle-accent transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
         </div>
-        <div class="flex-1 flex items-center justify-center p-4">
-            <img id="preview-photo-img" class="max-h-full max-w-full object-contain rounded-lg" alt="Preview">
+        <div class="flex-1 flex items-center justify-center p-4 overflow-hidden">
+            <img id="preview-photo-img" class="max-h-full max-w-full object-contain rounded-lg select-none" alt="Preview">
         </div>
-        <div class="p-4 flex justify-center">
+        <div class="px-4 py-3 flex justify-center">
             <button id="preview-retake-btn" class="bg-orange-600 hover:bg-orange-500 text-white font-semibold py-3 px-8 rounded-lg transition-all">
                 Retake This Photo
             </button>
@@ -324,25 +363,29 @@
     <!-- Review Screen -->
     <section id="review-screen" class="screen hidden min-h-screen flex flex-col p-6">
         <div class="max-w-4xl mx-auto w-full">
-            <h2 class="text-2xl font-bold mb-2 text-center">Review Photos</h2>
-            <p class="text-gray-400 mb-6 text-center">
-                <span id="review-mode-text">Pretest FAI</span> -
-                <span id="review-pn-sn"></span>
+            <h2 class="text-2xl font-bold mb-1 text-center">Review Photos</h2>
+            <p class="text-gray-400 mb-2 text-center text-sm">
+                <span id="review-mode-text">Pretest FAI</span> · <span id="review-pn-sn"></span>
             </p>
+            <p id="review-photo-count" class="text-oracle-accent text-center font-semibold mb-6"></p>
 
-            <div id="photos-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
-                <!-- Captured photos will appear here -->
-            </div>
+            <div id="photos-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8"></div>
 
             <div class="flex gap-4 justify-center flex-wrap">
                 <button id="retake-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-semibold py-3 px-6 rounded-lg transition-all">
                     Retake Selected
                 </button>
-                <button id="download-zip-btn" class="bg-green-600 hover:bg-green-500 text-white font-semibold py-3 px-6 rounded-lg transition-all">
+                <button id="download-zip-btn" class="bg-green-600 hover:bg-green-500 text-white font-semibold py-3 px-6 rounded-lg transition-all flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
                     Download ZIP
                 </button>
-                <button id="email-btn" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 px-6 rounded-lg transition-all">
-                    Email ZIP
+                <button id="email-btn" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 px-6 rounded-lg transition-all flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                    </svg>
+                    Share ZIP
                 </button>
                 <button id="new-session-btn" class="bg-oracle-secondary hover:bg-oracle-accent text-white font-semibold py-3 px-6 rounded-lg transition-all">
                     New Inspection
@@ -353,7 +396,7 @@
 
     <!-- Resume Session Modal -->
     <div id="resume-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-        <div class="bg-oracle-primary rounded-lg p-6 max-w-md w-full">
+        <div class="bg-oracle-primary rounded-xl p-6 max-w-md w-full shadow-2xl">
             <h3 class="text-xl font-bold mb-2 text-oracle-accent">Resume Session?</h3>
             <p class="text-gray-300 mb-2">A previous inspection session was found:</p>
             <div id="resume-details" class="bg-gray-800 rounded-lg p-3 mb-4 text-sm">
@@ -374,7 +417,7 @@
 
     <!-- Error Modal -->
     <div id="error-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-        <div class="bg-oracle-primary rounded-lg p-6 max-w-md w-full">
+        <div class="bg-oracle-primary rounded-xl p-6 max-w-md w-full shadow-2xl">
             <h3 class="text-xl font-bold mb-4 text-red-400">Error</h3>
             <p id="error-message" class="text-gray-300 mb-6"></p>
             <button id="error-close-btn" class="bg-oracle-secondary hover:bg-oracle-accent text-white font-semibold py-2 px-6 rounded-lg transition-all w-full">
@@ -385,8 +428,8 @@
 
     <!-- Barcode Scanner Modal -->
     <div id="scanner-modal" class="hidden fixed inset-0 bg-black z-[70] flex flex-col">
-        <div class="bg-oracle-primary p-4 flex items-center justify-between">
-            <h3 id="scanner-title" class="text-lg font-semibold">Scan Barcode</h3>
+        <div class="bg-oracle-primary px-4 py-3 flex items-center justify-between">
+            <h3 id="scanner-title" class="text-base font-semibold">Scan Barcode</h3>
             <button id="scanner-close-btn" class="text-white hover:text-oracle-accent transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -404,6 +447,17 @@
         </div>
     </div>
 
+    <!-- Export Progress Overlay -->
+    <div id="export-progress-overlay" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-[80] p-4">
+        <div class="bg-oracle-primary rounded-xl p-6 w-full max-w-sm shadow-2xl">
+            <p class="text-white font-semibold text-center mb-4" id="export-progress-label">Preparing photos…</p>
+            <div class="w-full bg-gray-700 rounded-full h-3 mb-2">
+                <div id="export-progress-bar" class="bg-oracle-accent h-3 rounded-full transition-all duration-200" style="width: 0%"></div>
+            </div>
+            <p id="export-progress-pct" class="text-gray-400 text-xs text-center">0%</p>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="js/config.js"></script>
     <script src="js/storage.js"></script>
@@ -412,5 +466,16 @@
     <script src="js/export.js"></script>
     <script src="js/screens.js"></script>
     <script src="js/app.js"></script>
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js', { scope: './' })
+                    .then(reg => console.log('[SW] Registered, scope:', reg.scope))
+                    .catch(err => console.warn('[SW] Registration failed:', err));
+            });
+        }
+    </script>
 </body>
 </html>
