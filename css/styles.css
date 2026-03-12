@@ -13,13 +13,17 @@
     display: flex;
 }
 
-/* Camera viewport wrapper - fills full camera area */
+/* Camera viewport - fixed 3:4 portrait aspect ratio matching the 4:3 template.
+   Width is always 100% of the screen. Height = width × 4/3.
+   The parent container (overflow-hidden) clips any small overflow on short phones. */
 #camera-viewport {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
-    height: 100%;
+    aspect-ratio: 3 / 4;
+    flex-shrink: 0;
+    margin: auto;
 }
 
 /* Camera preview fills the viewport wrapper */
