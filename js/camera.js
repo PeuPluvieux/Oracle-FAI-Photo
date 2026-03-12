@@ -63,12 +63,14 @@ const Camera = {
             // Stop any existing stream (but don't remove visibility handler yet)
             this._stopStream();
 
-            // Minimal constraints - let the camera use its native settings
+            // Request 4:3 aspect ratio - matches native camera app's 4:3 mode
+            // This gives the same field of view as the native camera
             const constraints = {
                 video: {
                     facingMode: 'environment',
-                    width: { ideal: 3840 },
-                    height: { ideal: 2160 }
+                    aspectRatio: { ideal: 4 / 3 },
+                    width: { ideal: 4032 },
+                    height: { ideal: 3024 }
                 },
                 audio: false
             };
@@ -77,13 +79,27 @@ const Camera = {
             if (deviceId) {
                 constraints.video = {
                     deviceId: { exact: deviceId },
-                    width: { ideal: 3840 },
-                    height: { ideal: 2160 }
+                    aspectRatio: { ideal: 4 / 3 },
+                    width: { ideal: 4032 },
+                    height: { ideal: 3024 }
                 };
             }
 
             this.stream = await navigator.mediaDevices.getUserMedia(constraints);
             this.videoElement.srcObject = this.stream;
+
+            // Add listener BEFORE play() so we never miss the loadedmetadata event.
+            // Resizes the viewport to exactly match the delivered video ratio —
+            // no cropping, no black bars, same FOV as the native camera in 4:3 mode.
+            this.videoElement.addEventListener('loadedmetadata', () => {
+                const w = this.videoElement.videoWidth;
+                const h = this.videoElement.videoHeight;
+                if (w > 0 && h > 0) {
+                    const viewport = document.getElementById('camera-viewport');
+                    if (viewport) viewport.style.aspectRatio = `${w} / ${h}`;
+                }
+            }, { once: true });
+
             await this.videoElement.play();
 
             // Update current device ID
