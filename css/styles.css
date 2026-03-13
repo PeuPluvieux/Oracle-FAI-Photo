@@ -272,3 +272,10 @@
 #camera-screen > div:last-child {
     padding-bottom: max(env(safe-area-inset-bottom), 0.75rem) !important;
 }
+
+/* Safe area for all other screens — ensures notch and home bar never
+   overlap headings, buttons or footers on any page. */
+.screen:not(#camera-screen) {
+    padding-top: max(env(safe-area-inset-top), 1.5rem) !important;
+    padding-bottom: max(env(safe-area-inset-bottom), 1.5rem) !important;
+}
