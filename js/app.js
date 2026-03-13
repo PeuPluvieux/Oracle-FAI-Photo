@@ -168,25 +168,11 @@ const App = {
         }
 
         // Barcode scan buttons
-        document.getElementById('scan-pn-btn').addEventListener('click', () => {
-            this.startTextScan('part-number');
-        });
         document.getElementById('scan-sn-btn').addEventListener('click', () => {
             this.startScan('serial-number', 'Serial Number (SN)');
         });
         document.getElementById('scanner-close-btn').addEventListener('click', () => {
             this.stopScan();
-        });
-
-        document.getElementById('scanner-capture-btn').addEventListener('click', () => this._captureOcrFrame());
-        document.getElementById('ocr-use-btn').addEventListener('click', () => {
-            const val = document.getElementById('ocr-result-input').value.trim();
-            if (val) document.getElementById(this._ocrTargetFieldId).value = val;
-            this.stopScan();
-        });
-        document.getElementById('ocr-retry-btn').addEventListener('click', () => {
-            document.getElementById('ocr-result-panel').classList.add('hidden');
-            document.getElementById('scanner-capture-btn').classList.remove('hidden');
         });
 
         // Camera screen
@@ -557,7 +543,6 @@ const App = {
 
     // ── Barcode Scanner ──────────────────────────────────────────
     _scannerReader: null,
-    _ocrTargetFieldId: null,
 
     // Open scanner modal and start decoding for the given field
     startScan(targetFieldId, fieldLabel) {
@@ -591,10 +576,6 @@ const App = {
 
     // Stop scanner and release camera stream
     stopScan() {
-        document.getElementById('scanner-capture-btn').classList.add('hidden');
-        document.getElementById('ocr-result-panel').classList.add('hidden');
-        document.getElementById('ocr-spinner').classList.add('hidden');
-        this._ocrTargetFieldId = null;
         if (this._scannerReader) {
             try { this._scannerReader.reset(); } catch (e) {}
             this._scannerReader = null;
@@ -606,48 +587,6 @@ const App = {
             video.srcObject = null;
         }
         document.getElementById('scanner-modal').classList.add('hidden');
-    },
-
-    // Open camera in OCR text-scan mode (no ZXing)
-    startTextScan(targetFieldId) {
-        if (typeof Tesseract === 'undefined') {
-            Screens.showError('OCR scanner failed to load. Please check your internet connection.');
-            return;
-        }
-        this._ocrTargetFieldId = targetFieldId;
-        document.getElementById('scanner-title').textContent = 'Scan Part Number';
-        document.getElementById('scanner-capture-btn').classList.remove('hidden');
-        document.getElementById('ocr-result-panel').classList.add('hidden');
-        document.getElementById('ocr-spinner').classList.add('hidden');
-        document.getElementById('scanner-modal').classList.remove('hidden');
-        // Start raw camera stream (no ZXing)
-        const video = document.getElementById('scanner-video');
-        navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: 'environment' } })
-            .then(stream => { video.srcObject = stream; })
-            .catch(() => { Screens.showError('Could not access camera.'); this.stopScan(); });
-    },
-
-    // Capture current video frame and run Tesseract OCR
-    async _captureOcrFrame() {
-        const video = document.getElementById('scanner-video');
-        document.getElementById('scanner-capture-btn').classList.add('hidden');
-        document.getElementById('ocr-spinner').classList.remove('hidden');
-        // Draw full video frame to canvas
-        const canvas = document.createElement('canvas');
-        canvas.width  = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext('2d').drawImage(video, 0, 0);
-        try {
-            const { data: { text } } = await Tesseract.recognize(canvas, 'eng');
-            const cleaned = text.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-            document.getElementById('ocr-result-input').value = cleaned;
-            document.getElementById('ocr-spinner').classList.add('hidden');
-            document.getElementById('ocr-result-panel').classList.remove('hidden');
-        } catch (e) {
-            document.getElementById('ocr-spinner').classList.add('hidden');
-            document.getElementById('scanner-capture-btn').classList.remove('hidden');
-            Screens.showError('OCR failed. Please try again.');
-        }
     },
 
     // Show a yellow focus indicator at the tapped position
