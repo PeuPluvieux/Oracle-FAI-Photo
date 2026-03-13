@@ -108,10 +108,11 @@ const Screens = {
     // Map photo location → one of four section keys
     _sectionForLocation(location) {
         if (!location) return null;
-        if (location === 'front')                                    return 'front';
-        if (location === 'rear')                                     return 'rear';
-        if (location === 'left_side' || location === 'right_side')   return 'sides';
-        if (location === 'labels')                                   return 'labels';
+        if (location === 'front')                                                          return 'front';
+        if (location === 'rear')                                                           return 'rear';
+        if (location === 'left_side' || location === 'right_side' ||
+            location === 'side_a'    || location === 'side_b')                             return 'sides';
+        if (location === 'labels')                                                         return 'labels';
         return null;
     },
 
@@ -149,8 +150,10 @@ const Screens = {
         // Progress bar
         document.getElementById('progress-bar').style.width = `${progress.percentage}%`;
 
-        // Finish Early button
-        document.getElementById('finish-early-btn').classList.toggle('hidden', SESSION.capturedPhotos.length === 0);
+        // Finish Early button — show after first capture; hide mode badge to free space for section pills
+        const showFinish = SESSION.capturedPhotos.length > 0;
+        document.getElementById('finish-early-btn').classList.toggle('hidden', !showFinish);
+        document.getElementById('fai-mode-badge').classList.toggle('hidden', showFinish);
 
         // Gallery count badge
         const count   = SESSION.capturedPhotos.length;
@@ -215,11 +218,8 @@ const Screens = {
         const templateImg = document.createElement('img');
         templateImg.src = `${CONFIG.templatePath}${photo.template}`;
         templateImg.className = 'w-full h-full object-contain';
-        // Use saved opacity preference (App may not be defined yet during early init)
-        const savedOpacity = (typeof App !== 'undefined' && App._templateOpacity !== undefined)
-            ? App._templateOpacity : 0.5;
-        templateImg.style.opacity = savedOpacity;
         templateImg.alt = `Template: ${photo.id}`;
+        // Opacity is managed on the parent #template-overlay div via App._applyTemplateOpacity()
 
         // Rotate landscape templates 90deg so they display in the portrait viewport
         if (isLandscape) {

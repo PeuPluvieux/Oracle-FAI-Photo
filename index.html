@@ -121,7 +121,7 @@
                 <div>
                     <label for="part-number" class="block text-sm font-medium mb-2">Part Number (PN) <span class="text-gray-500 font-normal">- Optional</span></label>
                     <div class="flex gap-2">
-                        <input type="text" id="part-number" placeholder="e.g., 7628112-33067"
+                        <input type="text" id="part-number" placeholder="e.g., 5262B1110001"
                                class="flex-1 px-4 py-3 rounded-lg bg-gray-800 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-oracle-accent">
                         <button id="scan-pn-btn" class="bg-oracle-secondary hover:bg-oracle-accent text-white px-4 rounded-lg transition-all flex items-center gap-2 text-sm font-medium whitespace-nowrap">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -444,6 +444,34 @@
                 </div>
                 <p class="scanner-hint">Align barcode within the frame</p>
             </div>
+
+            <!-- OCR: capture button shown in text-scan mode -->
+            <button id="scanner-capture-btn" class="hidden absolute bottom-6 left-1/2 -translate-x-1/2 z-10
+                bg-white text-oracle-dark font-semibold px-6 py-3 rounded-full shadow-lg">
+                Capture Text
+            </button>
+
+            <!-- OCR: result panel (shown after Tesseract completes) -->
+            <div id="ocr-result-panel" class="hidden absolute inset-0 bg-black/90 flex flex-col
+                items-center justify-center gap-4 p-6 z-20">
+                <p class="text-gray-400 text-sm">Detected text — edit if needed:</p>
+                <input id="ocr-result-input" type="text"
+                    class="w-full max-w-xs px-4 py-3 rounded-lg bg-gray-800 border border-gray-600
+                           text-white text-center text-lg font-mono focus:outline-none focus:border-oracle-accent">
+                <div class="flex gap-3">
+                    <button id="ocr-retry-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-semibold
+                        py-2 px-5 rounded-lg transition-all">Retry</button>
+                    <button id="ocr-use-btn" class="bg-oracle-secondary hover:bg-oracle-accent text-white
+                        font-semibold py-2 px-5 rounded-lg transition-all">Use This</button>
+                </div>
+            </div>
+
+            <!-- OCR: processing spinner -->
+            <div id="ocr-spinner" class="hidden absolute inset-0 bg-black/80 flex flex-col
+                items-center justify-center gap-3 z-20">
+                <div class="spinner"></div>
+                <p class="text-gray-300 text-sm">Reading text…</p>
+            </div>
         </div>
     </div>
 
@@ -457,6 +485,8 @@
             <p id="export-progress-pct" class="text-gray-400 text-xs text-center">0%</p>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
     <!-- Scripts -->
     <script src="js/config.js"></script>
