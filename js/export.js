@@ -179,6 +179,27 @@ const Export = {
         URL.revokeObjectURL(url);
     },
 
+    // Rotate a dataUrl 90° clockwise; returns a new dataUrl
+    rotateImage90CW(dataUrl) {
+        return new Promise(resolve => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.height; canvas.height = img.width;
+                const ctx = canvas.getContext('2d');
+                ctx.translate(canvas.width, 0);
+                ctx.rotate(Math.PI / 2);
+                ctx.drawImage(img, 0, 0);
+                canvas.toBlob(blob => {
+                    const reader = new FileReader();
+                    reader.onload = e => resolve(e.target.result);
+                    reader.readAsDataURL(blob);
+                }, CONFIG.photo.format, CONFIG.photo.quality);
+            };
+            img.src = dataUrl;
+        });
+    },
+
     async downloadPhoto(capturedPhoto) {
         let photoToExport = capturedPhoto;
         try {

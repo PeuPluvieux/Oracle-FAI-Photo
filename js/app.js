@@ -90,6 +90,9 @@ const App = {
             Screens.updateCameraUI();
             Screens.updateLastPhotoThumb();
             this.acquireWakeLock();
+            // Show torch button if supported
+            const torchBtn = document.getElementById('torch-btn');
+            if (torchBtn) torchBtn.classList.toggle('hidden', !Camera._torchSupported);
         } catch (error) {
             console.error('Camera error on resume:', error);
             Screens.showError('Unable to access camera. Please ensure camera permissions are granted.');
@@ -289,6 +292,36 @@ const App = {
             Screens.hideError();
         });
 
+        // Torch toggle
+        document.getElementById('torch-btn').addEventListener('click', async () => {
+            const on = await Camera.toggleTorch();
+            const btn = document.getElementById('torch-btn');
+            btn.classList.toggle('border-yellow-400', on);
+            btn.classList.toggle('border-gray-500', !on);
+            btn.querySelector('svg').classList.toggle('text-yellow-400', on);
+            btn.querySelector('svg').classList.toggle('text-gray-400', !on);
+        });
+
+        // Auto-dismiss landscape prompt on device rotation
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                const isLandscape = window.innerWidth > window.innerHeight;
+                const prompt = document.getElementById('landscape-prompt');
+                if (!prompt) return;
+                if (isLandscape) {
+                    prompt.classList.add('hidden');
+                } else {
+                    const photo = SESSION.getCurrentPhoto();
+                    prompt.classList.toggle('hidden', !(photo && photo.orientation === 'landscape'));
+                }
+            }, 150);
+        });
+
+        // Rotate selected photos on review screen
+        document.getElementById('rotate-selected-btn').addEventListener('click', () => {
+            this.rotateSelectedPhotos();
+        });
+
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if (Screens.currentScreen === 'camera' && e.code === 'Space') {
@@ -352,6 +385,9 @@ const App = {
             await Camera.start();
             Screens.updateCameraUI();
             this.acquireWakeLock();
+            // Show torch button if supported
+            const torchBtn = document.getElementById('torch-btn');
+            if (torchBtn) torchBtn.classList.toggle('hidden', !Camera._torchSupported);
         } catch (error) {
             console.error('Camera error:', error);
             Screens.showError('Unable to access camera. Please ensure camera permissions are granted.');
@@ -515,6 +551,28 @@ const App = {
         Storage.saveSession(SESSION.toJSON());
 
         // Re-render grid
+        Screens.renderPhotosGrid();
+    },
+
+    // Rotate selected photos 90° clockwise (from review screen)
+    async rotateSelectedPhotos() {
+        const indices = Screens.getSelectedPhotos();
+        if (indices.length === 0) { Screens.showError('Please select photos to rotate.'); return; }
+        for (const i of indices) {
+            const photo = SESSION.capturedPhotos[i];
+            if (!photo) continue;
+            const rotated = await Export.rotateImage90CW(photo.dataUrl);
+            SESSION.capturedPhotos[i] = { ...photo, dataUrl: rotated };
+            // Update full-res in IndexedDB too
+            try {
+                const all = await Storage.loadPhotos();
+                const full = all.find(p => p.id === photo.id);
+                if (full) {
+                    const rotatedFull = await Export.rotateImage90CW(full.dataUrl);
+                    Storage.savePhoto({ ...full, dataUrl: rotatedFull });
+                }
+            } catch (e) {}
+        }
         Screens.renderPhotosGrid();
     },
 

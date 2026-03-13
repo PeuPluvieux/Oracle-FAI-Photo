@@ -263,3 +263,12 @@
     animation: spin 0.8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Safe area insets — camera screen header (notch) and controls (home bar)
+   Inline styles on those elements take priority; these are a fallback. */
+#camera-screen > div:first-child {
+    padding-top: max(env(safe-area-inset-top), 0.75rem) !important;
+}
+#camera-screen > div:last-child {
+    padding-bottom: max(env(safe-area-inset-bottom), 0.75rem) !important;
+}

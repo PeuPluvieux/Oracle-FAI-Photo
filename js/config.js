@@ -72,9 +72,10 @@ const CONFIG = {
         { id: 'RS3', name: 'Right Side - Bottom Half', template: 'RS3.png', orientation: 'portrait', location: 'right_side', section: 'bottom_half' },
 
         // --- LABELS ---
-        { id: 'LB1', name: 'Label 1', template: 'LB.png', orientation: 'landscape', location: 'labels', section: 'labels' },
-        { id: 'LB2', name: 'Label 2', template: 'LB.png', orientation: 'landscape', location: 'labels', section: 'labels' },
-        { id: 'LB3', name: 'Label 3', template: 'LB.png', orientation: 'landscape', location: 'labels', section: 'labels' }
+        { id: 'LB1', name: 'Front Label',                       template: 'LB.png', orientation: 'landscape', location: 'labels', section: 'labels' },
+        { id: 'LB2', name: 'Rear Left Side Label (Near PDU)',    template: 'LB.png', orientation: 'landscape', location: 'labels', section: 'labels' },
+        { id: 'LB3', name: 'Rear Rack Bottom Left (Below PDU)',  template: 'LB.png', orientation: 'landscape', location: 'labels', section: 'labels' },
+        { id: 'LB4', name: 'Rear Rack Bottom Middle',            template: 'LB.png', orientation: 'landscape', location: 'labels', section: 'labels' }
     ],
 
     // ===========================================

@@ -16,6 +16,9 @@ const Camera = {
     _focusSupported: false,
     // Zoom
     _zoomSupported: false,
+    // Torch
+    _torchSupported: false,
+    _torchEnabled: false,
     _zoomMin: 1,
     _zoomMax: 1,
     _zoomCurrent: 1,
@@ -209,6 +212,7 @@ const Camera = {
         this._zoomMin        = 1;
         this._zoomMax        = 1;
         this._zoomCurrent    = 1;
+        this._torchSupported = false;
 
         if (!this.stream) return;
         const track = this.stream.getVideoTracks()[0];
@@ -226,11 +230,13 @@ const Camera = {
                     this._zoomMax = cap.zoom.max || 1;
                     this._zoomCurrent = track.getSettings().zoom || 1;
                 }
+                if (cap.torch) this._torchSupported = true;
             }
         } catch (e) { /* getCapabilities not available */ }
 
         console.log(`Zoom supported: ${this._zoomSupported} (${this._zoomMin}–${this._zoomMax})`);
         console.log(`Focus supported: ${this._focusSupported}`);
+        console.log(`Torch supported: ${this._torchSupported}`);
     },
 
     // Apply a zoom level (clamped to device min/max)
@@ -254,5 +260,17 @@ const Camera = {
         try {
             await track.applyConstraints({ advanced: [{ pointOfInterest: { x, y } }] });
         } catch (e) { /* visual indicator still shows even without hardware focus */ }
+    },
+
+    // Toggle torch/flashlight on supported devices
+    async toggleTorch() {
+        if (!this._torchSupported || !this.stream) return;
+        this._torchEnabled = !this._torchEnabled;
+        const track = this.stream.getVideoTracks()[0];
+        if (!track) return;
+        try {
+            await track.applyConstraints({ advanced: [{ torch: this._torchEnabled }] });
+        } catch (e) { this._torchEnabled = !this._torchEnabled; }
+        return this._torchEnabled;
     }
 };

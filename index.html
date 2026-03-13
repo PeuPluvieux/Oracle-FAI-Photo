@@ -206,7 +206,7 @@
     <!-- Camera Screen -->
     <section id="camera-screen" class="screen hidden h-screen overflow-hidden flex flex-col">
         <!-- Compact Header -->
-        <div class="bg-oracle-primary px-4 pt-3 pb-2">
+        <div class="bg-oracle-primary px-4 pb-2" style="padding-top: max(env(safe-area-inset-top), 0.75rem)">
             <div class="flex items-center justify-between mb-1">
                 <button id="camera-back-btn" class="text-white hover:text-oracle-accent transition-colors flex-shrink-0">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -291,9 +291,10 @@
         </div>
 
         <!-- Controls -->
-        <div class="bg-oracle-primary px-4 py-3">
+        <div class="bg-oracle-primary px-4 pt-3" style="padding-bottom: max(env(safe-area-inset-bottom), 0.75rem)">
             <div class="flex items-center justify-between max-w-md mx-auto">
-                <!-- Gallery button with count badge -->
+                <!-- Gallery + Torch buttons -->
+                <div class="flex items-center gap-2">
                 <button id="gallery-btn" class="relative w-12 h-12 rounded-xl overflow-hidden border-2 border-gray-500 bg-gray-800 flex items-center justify-center" title="View captured photos">
                     <img id="last-photo-thumb" class="w-full h-full object-cover hidden" alt="Last photo">
                     <svg id="gallery-icon" class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -301,6 +302,12 @@
                     </svg>
                     <span id="gallery-count" class="hidden absolute -top-1 -right-1 bg-oracle-accent text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center leading-none"></span>
                 </button>
+                <button id="torch-btn" class="hidden w-12 h-12 rounded-xl bg-gray-800 border-2 border-gray-500 flex items-center justify-center transition-all" title="Toggle torch">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </button>
+                </div>
 
                 <!-- Capture button -->
                 <button id="capture-btn" class="w-20 h-20 bg-white rounded-full border-4 border-oracle-accent hover:border-oracle-secondary transition-all transform hover:scale-105 flex items-center justify-center shadow-lg">
@@ -366,6 +373,9 @@
             <div class="flex gap-4 justify-center flex-wrap">
                 <button id="retake-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-semibold py-3 px-6 rounded-lg transition-all">
                     Retake Selected
+                </button>
+                <button id="rotate-selected-btn" class="bg-purple-600 hover:bg-purple-500 text-white font-semibold py-3 px-6 rounded-lg transition-all">
+                    Rotate Selected
                 </button>
                 <button id="download-zip-btn" class="bg-green-600 hover:bg-green-500 text-white font-semibold py-3 px-6 rounded-lg transition-all flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
