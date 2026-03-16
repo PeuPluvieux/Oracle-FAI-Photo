@@ -4,7 +4,7 @@
  * Strategy: cache-first for static assets, network-first for CDN with cache fallback.
  */
 
-const CACHE_VERSION = 'v8';
+const CACHE_VERSION = 'v9';
 const CACHE_NAME = `oracle-fai-${CACHE_VERSION}`;
 
 // All local static assets
@@ -48,7 +48,29 @@ const CDN_URLS = [
     'https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js'
 ];
 
-const ALL_ASSETS = [...STATIC_ASSETS, ...TEMPLATE_FILES];
+// Packout template PNG files
+const PACKOUT_TEMPLATE_BASE = './Test%20Sample%20Packout/Packout/Photo%20Template/';
+const PACKOUT_TEMPLATE_FILES = [
+    'AFR1.png', 'AFR2.png', 'AFR3.png',
+    'AK.png',
+    'AKB1.png', 'AKB2.png', 'AKB3.png',
+    'ARR1.png', 'ARR2.png', 'ARR3.png',
+    'BFR1.png', 'BFR3.png', 'BFRT.png', 'BRR2.png',
+    'BSV%20AT.png', 'BSV%20F.png',
+    'BSW%20AT.png',
+    'CCI.png', 'CFR1.png', 'CFR2.png', 'CFRTT.png',
+    'CLS1.png',
+    'CRR1.png', 'CRR2.png', 'CRR3.png',
+    'CRS1.png', 'CRS3.png', 'CRSTT.png',
+    'CSN.png', 'FRAT.png',
+    'LB1.png', 'LB2.png', 'LB3.png', 'LB4.png',
+    'PDU1.png', 'PDU2.png', 'PDU3.png', 'PDU4.png', 'PDU5.png', 'PDU6.png',
+    'PDUAT1.png', 'PDUAT2.png',
+    'SV%20AT.png', 'SV.png',
+    'SW%20AT.png', 'SW.png'
+].map(f => PACKOUT_TEMPLATE_BASE + f);
+
+const ALL_ASSETS = [...STATIC_ASSETS, ...TEMPLATE_FILES, ...PACKOUT_TEMPLATE_FILES];
 
 // ── Install: cache all local assets ────────────────────────────────────────
 self.addEventListener('install', event => {
