@@ -201,6 +201,11 @@ const App = {
 
         // Camera screen
         document.getElementById('camera-back-btn').addEventListener('click', () => {
+            // If mid-retake, show choice dialog instead of going back immediately
+            if (this._savedPhotoIndex !== null) {
+                document.getElementById('retake-choice-modal').classList.remove('hidden');
+                return;
+            }
             // Warn if photos have been captured - going back then hitting "Start Camera"
             // calls Storage.clearAll() which would delete everything
             if (SESSION.capturedPhotos.length > 0) {
@@ -208,12 +213,34 @@ const App = {
                     return;
                 }
             }
-            // Clear any pending retake state so it doesn't carry over
+            this._capturing = false;
+            this._resetSkipBtn();
+            Camera.stop();
+            this.releaseWakeLock();
+            Screens.show('info');
+        });
+
+        // Retake choice modal buttons
+        document.getElementById('retake-continue-btn').addEventListener('click', () => {
+            SESSION.currentPhotoIndex = this._savedPhotoIndex;
             this._retakeIndex = null;
             this._retakeQueueIndex = null;
             this._savedPhotoIndex = null;
             this._capturing = false;
             this._resetSkipBtn();
+            document.getElementById('retake-choice-modal').classList.add('hidden');
+            Camera.stop();
+            this.releaseWakeLock();
+            Screens.show('info');
+        });
+
+        document.getElementById('retake-restart-btn').addEventListener('click', () => {
+            this._retakeIndex = null;
+            this._retakeQueueIndex = null;
+            this._savedPhotoIndex = null;
+            this._capturing = false;
+            this._resetSkipBtn();
+            document.getElementById('retake-choice-modal').classList.add('hidden');
             Camera.stop();
             this.releaseWakeLock();
             Screens.show('info');
@@ -323,19 +350,17 @@ const App = {
             btn.querySelector('svg').classList.toggle('text-gray-400', !on);
         });
 
-        // Auto-dismiss landscape prompt on device rotation
-        window.addEventListener('orientationchange', () => {
-            setTimeout(() => {
-                const isLandscape = window.innerWidth > window.innerHeight;
-                const prompt = document.getElementById('landscape-prompt');
-                if (!prompt) return;
-                if (isLandscape) {
-                    prompt.classList.add('hidden');
-                } else {
-                    const photo = SESSION.getCurrentPhoto();
-                    prompt.classList.toggle('hidden', !(photo && photo.orientation === 'landscape'));
-                }
-            }, 150);
+        // Auto-dismiss landscape prompt on device rotation (resize fires after dimensions update)
+        window.addEventListener('resize', () => {
+            const prompt = document.getElementById('landscape-prompt');
+            if (!prompt || Screens.currentScreen !== 'camera') return;
+            const isLandscape = window.innerWidth > window.innerHeight;
+            if (isLandscape) {
+                prompt.classList.add('hidden');
+            } else {
+                const photo = SESSION.getCurrentPhoto();
+                prompt.classList.toggle('hidden', !(photo && photo.orientation === 'landscape'));
+            }
         });
 
         // Rotate selected photos on review screen

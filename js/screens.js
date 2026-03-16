@@ -183,7 +183,7 @@ const Screens = {
             document.getElementById('sect-labels')
         ];
         const labels = SESSION.mode === 'packout'
-            ? ['BEFORE', 'AFTER', 'LABELS', 'PARTS']
+            ? ['AK BOX', 'RACK', 'PLASTIC', 'CARTON']
             : ['FRONT', 'REAR', 'SIDES', 'LABELS'];
         pills.forEach((pill, i) => {
             if (pill) {
@@ -199,11 +199,10 @@ const Screens = {
         if (!photo) return null;
         if (SESSION.mode === 'packout') {
             const sec = photo.section;
-            if (sec === 'before_bag')                                                      return 'front';
-            if (sec === 'fully_packaged')                                                  return 'rear';
-            if (sec === 'items' || sec === 'package_labels' ||
-                sec === 'paperwork' || sec === 'door_branding')                            return 'sides';
-            if (sec === 'assy_tag' || sec === 'accessory_kit')                            return 'labels';
+            if (sec === 'assy_tag' || sec === 'accessory_kit') return 'front';   // AK BOX pill
+            if (sec === 'before_bag')                          return 'rear';    // RACK pill
+            if (sec === 'bagged_rack')                         return 'sides';   // PLASTIC pill
+            if (sec === 'rack_in_carton')                      return 'labels';  // CARTON pill
             return null;
         }
         const location = photo.location;
