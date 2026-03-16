@@ -108,6 +108,37 @@ const Screens = {
             SESSION.hasDoorBranding = doorBranding.checked;
         }
 
+        // Show/hide server AT sub-options
+        const serverAtDiv = document.getElementById('pk-server-at-options');
+        if (serverAtDiv) {
+            if (SESSION.components.pkServers > 0) {
+                serverAtDiv.classList.remove('hidden');
+            } else {
+                serverAtDiv.classList.add('hidden');
+                SESSION.components.pkServersPerGroupFront = 0;
+                SESSION.components.pkServersPerGroupRear = 0;
+                const fEl = document.getElementById('qty-pk-servers-per-group-front');
+                const rEl = document.getElementById('qty-pk-servers-per-group-rear');
+                if (fEl) fEl.value = 0;
+                if (rEl) rEl.value = 0;
+            }
+        }
+        // Show/hide switch AT sub-options
+        const switchAtDiv = document.getElementById('pk-switch-at-options');
+        if (switchAtDiv) {
+            if (SESSION.components.pkSwitches > 0) {
+                switchAtDiv.classList.remove('hidden');
+            } else {
+                switchAtDiv.classList.add('hidden');
+                SESSION.components.pkSwitchesPerStackFront = 0;
+                SESSION.components.pkSwitchesPerStackRear = 0;
+                const fEl = document.getElementById('qty-pk-switches-per-stack-front');
+                const rEl = document.getElementById('qty-pk-switches-per-stack-rear');
+                if (fEl) fEl.value = 0;
+                if (rEl) rEl.value = 0;
+            }
+        }
+
         const count = SESSION.calculateTotalPhotos();
         document.getElementById('total-photo-count').textContent = count;
         return count;
