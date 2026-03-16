@@ -177,8 +177,37 @@ const App = {
                 el.addEventListener('input', () => {
                     Screens.updatePhotoCount();
                 });
+                el.addEventListener('change', () => {
+                    Screens.updatePhotoCount();
+                });
             }
         }
+
+        // Show/hide server AT sub-options when Server Groups dropdown changes
+        document.getElementById('qty-pk-servers').addEventListener('change', function () {
+            const subOptions = document.getElementById('pk-server-at-options');
+            if (parseInt(this.value) > 0) {
+                subOptions.classList.remove('hidden');
+            } else {
+                subOptions.classList.add('hidden');
+                document.getElementById('qty-pk-servers-per-group-front').value = 0;
+                document.getElementById('qty-pk-servers-per-group-rear').value = 0;
+                Screens.updatePhotoCount();
+            }
+        });
+
+        // Show/hide switch AT sub-options when Switch Stacks dropdown changes
+        document.getElementById('qty-pk-switches').addEventListener('change', function () {
+            const subOptions = document.getElementById('pk-switch-at-options');
+            if (parseInt(this.value) > 0) {
+                subOptions.classList.remove('hidden');
+            } else {
+                subOptions.classList.add('hidden');
+                document.getElementById('qty-pk-switches-per-stack-front').value = 0;
+                document.getElementById('qty-pk-switches-per-stack-rear').value = 0;
+                Screens.updatePhotoCount();
+            }
+        });
 
         // Switch stack orientation modal buttons
         document.getElementById('switch-orient-portrait').addEventListener('click', () => {

@@ -64,6 +64,10 @@ const Screens = {
         const doorBranding = document.getElementById('door-branding');
         if (doorBranding) doorBranding.checked = false;
 
+        // Hide AT sub-options until a group/stack count is selected
+        document.getElementById('pk-server-at-options').classList.add('hidden');
+        document.getElementById('pk-switch-at-options').classList.add('hidden');
+
         // Show/hide options based on mode
         if (SESSION.mode === 'pretest') {
             pretestOptions.classList.remove('hidden');
