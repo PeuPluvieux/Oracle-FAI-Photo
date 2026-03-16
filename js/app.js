@@ -670,9 +670,7 @@ const App = {
 
     // Native BarcodeDetector API (Chrome on Android — near-instant)
     _startNativeScan(targetFieldId, videoEl) {
-        const detector = new BarcodeDetector({
-            formats: ['code_128', 'code_39', 'qr_code', 'data_matrix', 'pdf417']
-        });
+        const detector = new BarcodeDetector({ formats: ['code_128'] });
 
         const scan = async () => {
             if (!this._scannerStream) return; // stopped
@@ -693,10 +691,7 @@ const App = {
     _startZxingScan(targetFieldId, videoEl, stream) {
         const hints = new Map();
         hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
-            ZXing.BarcodeFormat.CODE_128,
-            ZXing.BarcodeFormat.CODE_39,
-            ZXing.BarcodeFormat.QR_CODE,
-            ZXing.BarcodeFormat.DATA_MATRIX
+            ZXing.BarcodeFormat.CODE_128
         ]);
         hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
 
