@@ -216,10 +216,10 @@ const CONFIG = {
         // Crate & package labels (LABELS)
         { id: 'CSN',    name: 'Crate - Customer Info Label',   template: 'CSN.png',    orientation: 'portrait',   location: 'labels', section: 'rack_in_carton' },
         { id: 'CCI',    name: 'Crate - Customer Info Doc',     template: 'CCI.png',    orientation: 'landscape',  location: 'labels', section: 'rack_in_carton' },
-        { id: 'LB1',    name: 'Package Label 1',               template: 'LB1.png',    orientation: 'landscape',  location: 'labels', section: 'rack_in_carton' },
-        { id: 'LB2',    name: 'Package Label 2',               template: 'LB2.png',    orientation: 'landscape',  location: 'labels', section: 'rack_in_carton' },
-        { id: 'LB3',    name: 'Package Label 3',               template: 'LB3.png',    orientation: 'landscape',  location: 'labels', section: 'rack_in_carton' },
-        { id: 'LB4',    name: 'Package Label 4',               template: 'LB4.png',    orientation: 'landscape',  location: 'labels', section: 'rack_in_carton' }
+        { id: 'LB1',    name: 'Front Rack Bottom Label',            template: 'LB1.png',    orientation: 'landscape',  location: 'labels', section: 'before_bag' },
+        { id: 'LB2',    name: 'Rear Rack Side Label (Near PDU)',   template: 'LB2.png',    orientation: 'landscape',  location: 'labels', section: 'before_bag' },
+        { id: 'LB3',    name: 'Rear Rack Bottom Label (Under PDU)',template: 'LB3.png',    orientation: 'landscape',  location: 'labels', section: 'before_bag' },
+        { id: 'LB4',    name: 'Rear Rack Bottom Label (Middle)',   template: 'LB4.png',    orientation: 'landscape',  location: 'labels', section: 'before_bag' }
     ],
 
     // PACKOUT FAI - Door Branding Add-on
