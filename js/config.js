@@ -11,8 +11,9 @@ const CONFIG = {
         quality: 0.92
     },
 
-    // Template base path (relative to project root)
+    // Template base paths (relative to project root)
     templatePath: 'Test Sample PRETEST v2/Template/',
+    packoutTemplatePath: 'Test Sample Packout/Packout/Photo Template/',
 
     // FAI Modes
     modes: {
@@ -171,24 +172,67 @@ const CONFIG = {
     // ===========================================
     // PACKOUT FAI - Default Photos (Always taken)
     // ===========================================
+    // NOTE: section assignments can be refined when final guidelines arrive.
     packoutDefaultPhotos: [
-        { id: 'PK_FR1', name: 'Packout Front - Before Shipping Bag', template: null, orientation: 'portrait', location: 'front', section: 'before_bag' },
-        { id: 'PK_RR1', name: 'Packout Rear - Before Shipping Bag', template: null, orientation: 'portrait', location: 'rear', section: 'before_bag' },
-        { id: 'PK_SA1', name: 'Packout Side A - Before Shipping Bag', template: null, orientation: 'portrait', location: 'side_a', section: 'before_bag' },
-        { id: 'PK_SB1', name: 'Packout Side B - Before Shipping Bag', template: null, orientation: 'portrait', location: 'side_b', section: 'before_bag' },
-        { id: 'PK_FR2', name: 'Packout Front - Fully Packaged', template: null, orientation: 'portrait', location: 'front', section: 'fully_packaged' },
-        { id: 'PK_RR2', name: 'Packout Rear - Fully Packaged', template: null, orientation: 'portrait', location: 'rear', section: 'fully_packaged' },
-        { id: 'PK_SA2', name: 'Packout Side A - Fully Packaged', template: null, orientation: 'portrait', location: 'side_a', section: 'fully_packaged' },
-        { id: 'PK_SB2', name: 'Packout Side B - Fully Packaged', template: null, orientation: 'portrait', location: 'side_b', section: 'fully_packaged' },
-        { id: 'PK_RA1', name: 'Ride Along Items - Overview', template: null, orientation: 'landscape', location: 'ride_along', section: 'items' },
-        { id: 'PK_LB1', name: 'Package Labels - Close Up', template: null, orientation: 'landscape', location: 'labels', section: 'package_labels' },
-        { id: 'PK_LB2', name: 'Paperwork - Close Up', template: null, orientation: 'landscape', location: 'labels', section: 'paperwork' }
+        // Open rack — front (BEFORE)
+        { id: 'AFR1',   name: 'Open Rack - Front 1',           template: 'AFR1.png',   orientation: 'portrait',   location: 'front',  section: 'before_bag' },
+        { id: 'AFR2',   name: 'Open Rack - Front 2',           template: 'AFR2.png',   orientation: 'portrait',   location: 'front',  section: 'before_bag' },
+        { id: 'AFR3',   name: 'Open Rack - Front 3',           template: 'AFR3.png',   orientation: 'portrait',   location: 'front',  section: 'before_bag' },
+        // Open rack — rear (BEFORE)
+        { id: 'ARR1',   name: 'Open Rack - Rear 1',            template: 'ARR1.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
+        { id: 'ARR2',   name: 'Open Rack - Rear 2',            template: 'ARR2.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
+        { id: 'ARR3',   name: 'Open Rack - Rear 3',            template: 'ARR3.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
+        // Rack assy tags & SN (BEFORE)
+        { id: 'SN',     name: 'Rack Serial Number',            template: 'FRAT.png',   orientation: 'portrait',   location: 'labels', section: 'before_bag' },
+        { id: 'FRAT',   name: 'Front Rack Assy Tag',           template: 'FRAT.png',   orientation: 'portrait',   location: 'labels', section: 'before_bag' },
+        // PDUs (BEFORE)
+        { id: 'PDU1',   name: 'PDU Left - Photo 1',            template: 'PDU1.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
+        { id: 'PDU2',   name: 'PDU Left - Photo 2',            template: 'PDU2.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
+        { id: 'PDU3',   name: 'PDU Left - Photo 3',            template: 'PDU3.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
+        { id: 'PDU4',   name: 'PDU Right - Photo 1',           template: 'PDU4.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
+        { id: 'PDU5',   name: 'PDU Right - Photo 2',           template: 'PDU5.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
+        { id: 'PDU6',   name: 'PDU Right - Photo 3',           template: 'PDU6.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
+        // PDU assy tags (BEFORE)
+        { id: 'PDUAT1', name: 'PDU Assy Tag 1',                template: 'PDUAT1.png', orientation: 'landscape',  location: 'rear',   section: 'before_bag' },
+        { id: 'PDUAT2', name: 'PDU Assy Tag 2',                template: 'PDUAT2.png', orientation: 'landscape',  location: 'rear',   section: 'before_bag' },
+        // Bagged rack — shrink-wrapped (AFTER)
+        { id: 'BFR1',   name: 'Bagged Rack - Front 1',         template: 'BFR1.png',   orientation: 'portrait',   location: 'front',  section: 'fully_packaged' },
+        { id: 'BFR3',   name: 'Bagged Rack - Front 3',         template: 'BFR3.png',   orientation: 'portrait',   location: 'front',  section: 'fully_packaged' },
+        { id: 'BFRT',   name: 'Bagged Rack - Front Top',       template: 'BFRT.png',   orientation: 'portrait',   location: 'front',  section: 'fully_packaged' },
+        { id: 'BRR2',   name: 'Bagged Rack - Rear 2',          template: 'BRR2.png',   orientation: 'portrait',   location: 'rear',   section: 'fully_packaged' },
+        // Crated rack — front (AFTER)
+        { id: 'CFR1',   name: 'Crated Rack - Front 1',         template: 'CFR1.png',   orientation: 'portrait',   location: 'front',  section: 'fully_packaged' },
+        { id: 'CFR2',   name: 'Crated Rack - Front 2',         template: 'CFR2.png',   orientation: 'portrait',   location: 'front',  section: 'fully_packaged' },
+        { id: 'CFRTT',  name: 'Crated Rack - Front Top',       template: 'CFRTT.png',  orientation: 'portrait',   location: 'front',  section: 'fully_packaged' },
+        // Crated rack — rear (AFTER)
+        { id: 'CRR1',   name: 'Crated Rack - Rear 1',          template: 'CRR1.png',   orientation: 'portrait',   location: 'rear',   section: 'fully_packaged' },
+        { id: 'CRR2',   name: 'Crated Rack - Rear 2',          template: 'CRR2.png',   orientation: 'portrait',   location: 'rear',   section: 'fully_packaged' },
+        { id: 'CRR3',   name: 'Crated Rack - Rear 3',          template: 'CRR3.png',   orientation: 'portrait',   location: 'rear',   section: 'fully_packaged' },
+        // Crated rack — sides (AFTER)
+        { id: 'CRS1',   name: 'Crated Rack - Right Side 1',    template: 'CRS1.png',   orientation: 'portrait',   location: 'side_a', section: 'fully_packaged' },
+        { id: 'CRS3',   name: 'Crated Rack - Right Side 3',    template: 'CRS3.png',   orientation: 'portrait',   location: 'side_a', section: 'fully_packaged' },
+        { id: 'CRSTT',  name: 'Crated Rack - Right Side Top',  template: 'CRSTT.png',  orientation: 'portrait',   location: 'side_a', section: 'fully_packaged' },
+        { id: 'CLS1',   name: 'Crated Rack - Left Side 1',     template: 'CLS1.png',   orientation: 'portrait',   location: 'side_b', section: 'fully_packaged' },
+        // Crate & package labels (LABELS)
+        { id: 'CSN',    name: 'Crate - Customer Info Label',   template: 'CSN.png',    orientation: 'landscape',  location: 'labels', section: 'package_labels' },
+        { id: 'CCI',    name: 'Crate - Customer Info Doc',     template: 'CCI.png',    orientation: 'landscape',  location: 'labels', section: 'package_labels' },
+        { id: 'LB1',    name: 'Package Label 1',               template: 'LB1.png',    orientation: 'landscape',  location: 'labels', section: 'package_labels' },
+        { id: 'LB2',    name: 'Package Label 2',               template: 'LB2.png',    orientation: 'landscape',  location: 'labels', section: 'package_labels' },
+        { id: 'LB3',    name: 'Package Label 3',               template: 'LB3.png',    orientation: 'landscape',  location: 'labels', section: 'package_labels' },
+        { id: 'LB4',    name: 'Package Label 4',               template: 'LB4.png',    orientation: 'landscape',  location: 'labels', section: 'package_labels' }
     ],
 
     // PACKOUT FAI - Door Branding Add-on
     packoutDoorBranding: [
         { id: 'PK_DB1', name: 'Door Branding - Front', template: null, orientation: 'portrait', location: 'front', section: 'door_branding' },
         { id: 'PK_DB2', name: 'Door Branding - Rear', template: null, orientation: 'portrait', location: 'rear', section: 'door_branding' }
+    ],
+
+    // PACKOUT FAI - Accessory Kit Boxes (always taken, fixed set of 3)
+    packoutAkbPhotos: [
+        { id: 'AKB1', name: 'Accessory Kit Boxes - Photo 1', template: 'AKB1.png', orientation: 'portrait', location: 'accessory_kit', section: 'accessory_kit' },
+        { id: 'AKB2', name: 'Accessory Kit Boxes - Photo 2', template: 'AKB2.png', orientation: 'portrait', location: 'accessory_kit', section: 'accessory_kit' },
+        { id: 'AKB3', name: 'Accessory Kit Boxes - Photo 3', template: 'AKB3.png', orientation: 'portrait', location: 'accessory_kit', section: 'accessory_kit' }
     ],
 
     // Generate component photos for a given type and quantity
@@ -256,11 +300,22 @@ const SESSION = {
         servers: 0,
         corningEdge: 0,
         cableLabels: 0,
-        cableBend: 0
+        cableBend: 0,
+        // Packout component quantities
+        pkServers: 0,
+        pkServersPerGroupFront: 0,
+        pkServersPerGroupRear: 0,
+        pkSwitches: 0,
+        pkSwitchesPerStackFront: 0,
+        pkSwitchesPerStackRear: 0,
+        pkAkPns: 0
     },
 
     // Packout options
     hasDoorBranding: false,
+
+    // Switch stack orientations (keyed by stack number, set live via modal)
+    switchOrientations: {},
 
     // Photo management
     photoQueue: [],
@@ -347,6 +402,47 @@ const SESSION = {
             for (const photo of CONFIG.packoutDoorBranding) {
                 this._addPhoto(photo);
             }
+        }
+
+        // === FRONT SECTION ===
+        // All server group front views + front assy tags (all groups)
+        for (let g = 1; g <= this.components.pkServers; g++) {
+            this._addPhoto({ id: `SV${g}`, name: `Server Group ${g} - Full View`, orientation: 'landscape', section: 'assy_tag', location: 'front', template: 'SV.png' });
+            for (let s = 1; s <= this.components.pkServersPerGroupFront; s++) {
+                this._addPhoto({ id: `SV${g}AT${s}`, name: `Server Group ${g} - Assy Tag ${s} Front`, orientation: 'landscape', section: 'assy_tag', location: 'front', template: 'SV AT.png' });
+            }
+        }
+        // All switch stack full views + front assy tags (all stacks)
+        for (let st = 1; st <= this.components.pkSwitches; st++) {
+            this._addPhoto({ id: `SW${st}`, name: `Switch Stack ${st} - Full View`, orientation: 'portrait', section: 'assy_tag', location: 'front', template: 'SW.png' });
+            for (let sw = 1; sw <= this.components.pkSwitchesPerStackFront; sw++) {
+                this._addPhoto({ id: `SW${st}AT${sw}`, name: `Switch Stack ${st} - Assy Tag ${sw} Front`, orientation: 'portrait', section: 'assy_tag', location: 'front', template: 'SW AT.png' });
+            }
+        }
+
+        // === REAR SECTION ===
+        // All server group full rear views + rear assy tags (all groups)
+        for (let g = 1; g <= this.components.pkServers; g++) {
+            this._addPhoto({ id: `BSV${g}F`, name: `Server Group ${g} - Full Rear View`, orientation: 'landscape', section: 'assy_tag', location: 'rear', template: 'BSV F.png' });
+            for (let s = 1; s <= this.components.pkServersPerGroupRear; s++) {
+                this._addPhoto({ id: `BSV${g}AT${s}`, name: `Server Group ${g} - Assy Tag ${s} Rear`, orientation: 'landscape', section: 'assy_tag', location: 'rear', template: 'BSV AT.png' });
+            }
+        }
+        // All switch stack rear assy tags (all stacks)
+        for (let st = 1; st <= this.components.pkSwitches; st++) {
+            for (let sw = 1; sw <= this.components.pkSwitchesPerStackRear; sw++) {
+                this._addPhoto({ id: `BSW${st}AT${sw}`, name: `Switch Stack ${st} - Assy Tag ${sw} Rear`, orientation: 'portrait', section: 'assy_tag', location: 'rear', template: 'BSW AT.png' });
+            }
+        }
+
+        // Accessory kit PNs (bubble mailers, landscape)
+        for (let n = 1; n <= this.components.pkAkPns; n++) {
+            this._addPhoto({ id: `AK${n}`, name: `Accessory Kit PN ${n}`, orientation: 'landscape', section: 'accessory_kit', location: 'accessory_kit', template: 'AK.png' });
+        }
+
+        // Accessory kit boxes (fixed set of 3, always taken)
+        for (const photo of CONFIG.packoutAkbPhotos) {
+            this._addPhoto(photo);
         }
     },
 
@@ -438,9 +534,26 @@ const SESSION = {
             if (this.hasDoorBranding) {
                 count += CONFIG.packoutDoorBranding.length;
             }
+            // Per server group: SV (1) + front AT + BSV F (1) + rear AT = 2 + front + rear
+            count += this.components.pkServers * (2 + this.components.pkServersPerGroupFront + this.components.pkServersPerGroupRear);
+            // Per switch stack: SW (1) + front AT + rear AT = 1 + front + rear
+            count += this.components.pkSwitches * (1 + this.components.pkSwitchesPerStackFront + this.components.pkSwitchesPerStackRear);
+            count += this.components.pkAkPns;
+            count += CONFIG.packoutAkbPhotos.length; // AKB always 3
         }
 
         return count;
+    },
+
+    // Set orientation for all photos in a switch stack (called after modal confirmation)
+    setStackOrientation(stackNum, orientation) {
+        this.switchOrientations[stackNum] = orientation;
+        for (const photo of this.photoQueue) {
+            const m = photo.id.match(/^(BSW|SW)(\d+)/);
+            if (m && parseInt(m[2]) === stackNum) {
+                photo.orientation = orientation;
+            }
+        }
     },
 
     // Serialize session state for persistence (excludes photo blobs - those go to IndexedDB)
@@ -451,6 +564,7 @@ const SESSION = {
             serialNumber: this.serialNumber,
             components: { ...this.components },
             hasDoorBranding: this.hasDoorBranding,
+            switchOrientations: { ...this.switchOrientations },
             photoQueue: this.photoQueue,
             currentPhotoIndex: this.currentPhotoIndex
         };
@@ -462,10 +576,14 @@ const SESSION = {
         this.mode = data.mode;
         this.partNumber = data.partNumber || '';
         this.serialNumber = data.serialNumber || '';
-        this.components = data.components || {
-            switches: 0, servers: 0, corningEdge: 0, cableLabels: 0, cableBend: 0
+        this.components = {
+            switches: 0, servers: 0, corningEdge: 0, cableLabels: 0, cableBend: 0,
+            pkServers: 0, pkServersPerGroupFront: 0, pkServersPerGroupRear: 0,
+            pkSwitches: 0, pkSwitchesPerStackFront: 0, pkSwitchesPerStackRear: 0, pkAkPns: 0,
+            ...(data.components || {})
         };
         this.hasDoorBranding = data.hasDoorBranding || false;
+        this.switchOrientations = data.switchOrientations || {};
         this.photoQueue = data.photoQueue || [];
         this.currentPhotoIndex = data.currentPhotoIndex || 0;
         this.capturedPhotos = []; // Photos loaded separately from IndexedDB
@@ -482,9 +600,17 @@ const SESSION = {
             servers: 0,
             corningEdge: 0,
             cableLabels: 0,
-            cableBend: 0
+            cableBend: 0,
+            pkServers: 0,
+            pkServersPerGroupFront: 0,
+            pkServersPerGroupRear: 0,
+            pkSwitches: 0,
+            pkSwitchesPerStackFront: 0,
+            pkSwitchesPerStackRear: 0,
+            pkAkPns: 0
         };
         this.hasDoorBranding = false;
+        this.switchOrientations = {};
         this.photoQueue = [];
         this.currentPhotoIndex = 0;
         this.capturedPhotos = [];

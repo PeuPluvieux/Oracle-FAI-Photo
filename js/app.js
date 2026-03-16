@@ -170,6 +170,24 @@ const App = {
             });
         }
 
+        // Packout component quantity inputs (update photo count on change)
+        for (const inputId of Object.keys(Screens.packoutComponentInputs)) {
+            const el = document.getElementById(inputId);
+            if (el) {
+                el.addEventListener('input', () => {
+                    Screens.updatePhotoCount();
+                });
+            }
+        }
+
+        // Switch stack orientation modal buttons
+        document.getElementById('switch-orient-portrait').addEventListener('click', () => {
+            this.confirmSwitchOrientation('portrait');
+        });
+        document.getElementById('switch-orient-landscape').addEventListener('click', () => {
+            this.confirmSwitchOrientation('landscape');
+        });
+
         // Barcode scan buttons
         document.getElementById('scan-sn-btn').addEventListener('click', () => {
             this.startScan('serial-number', 'Serial Number (SN)');
@@ -378,6 +396,9 @@ const App = {
 
         // Switch to camera screen
         Screens.show('camera');
+
+        // Reset switch orientations for fresh session
+        SESSION.switchOrientations = {};
 
         // Start camera
         try {
@@ -740,6 +761,30 @@ const App = {
             btn.classList.remove('skip-btn-confirm');
             btn.classList.add('skip-btn-idle');
         }
+    },
+
+    // ── Switch Stack Orientation Modal ────────────────────────────────────
+    _pendingStackNum: null,
+
+    // Called after updateCameraUI when in packout mode.
+    // Shows orientation modal for the first AT photo of each new switch stack.
+    checkSwitchOrientation() {
+        const photo = SESSION.getCurrentPhoto();
+        const match = photo?.id.match(/^SW(\d+)$/);
+        if (!match) return;
+        const n = parseInt(match[1]);
+        if (SESSION.switchOrientations[n] !== undefined) return;
+        document.getElementById('switch-orient-title').textContent = `Switch Stack ${n} orientation?`;
+        document.getElementById('switch-orient-modal').classList.remove('hidden');
+        this._pendingStackNum = n;
+    },
+
+    // Confirm orientation choice for the pending stack and update all its photos.
+    confirmSwitchOrientation(orientation) {
+        SESSION.setStackOrientation(this._pendingStackNum, orientation);
+        this._pendingStackNum = null;
+        document.getElementById('switch-orient-modal').classList.add('hidden');
+        Screens.updateCameraUI();
     },
 
     // ── Pinch-to-zoom ────────────────────────────────────────────────────

@@ -6,13 +6,24 @@
 const Screens = {
     currentScreen: 'landing',
 
-    // Component quantity input IDs mapped to SESSION.components keys
+    // Component quantity input IDs mapped to SESSION.components keys (pretest)
     componentInputs: {
         'qty-switches': 'switches',
         'qty-servers': 'servers',
         'qty-corning-edge': 'corningEdge',
         'qty-cable-labels': 'cableLabels',
         'qty-cable-bend': 'cableBend'
+    },
+
+    // Packout component quantity input IDs mapped to SESSION.components keys
+    packoutComponentInputs: {
+        'qty-pk-servers': 'pkServers',
+        'qty-pk-servers-per-group-front': 'pkServersPerGroupFront',
+        'qty-pk-servers-per-group-rear': 'pkServersPerGroupRear',
+        'qty-pk-switches': 'pkSwitches',
+        'qty-pk-switches-per-stack-front': 'pkSwitchesPerStackFront',
+        'qty-pk-switches-per-stack-rear': 'pkSwitchesPerStackRear',
+        'qty-ak-pns': 'pkAkPns'
     },
 
     // Show a specific screen
@@ -43,6 +54,12 @@ const Screens = {
             if (el) el.value = 0;
         }
 
+        // Reset packout component inputs
+        for (const inputId of Object.keys(this.packoutComponentInputs)) {
+            const el = document.getElementById(inputId);
+            if (el) el.value = 0;
+        }
+
         // Reset packout checkbox
         const doorBranding = document.getElementById('door-branding');
         if (doorBranding) doorBranding.checked = false;
@@ -56,6 +73,9 @@ const Screens = {
             packoutOptions.classList.remove('hidden');
         }
 
+        // Set section pill labels for this mode
+        this._initSectionPills();
+
         // Update photo count
         this.updatePhotoCount();
     },
@@ -64,6 +84,14 @@ const Screens = {
     updatePhotoCount() {
         // Sync component quantities from inputs to SESSION
         for (const [inputId, key] of Object.entries(this.componentInputs)) {
+            const el = document.getElementById(inputId);
+            if (el) {
+                SESSION.components[key] = parseInt(el.value) || 0;
+            }
+        }
+
+        // Sync packout component quantities from inputs to SESSION
+        for (const [inputId, key] of Object.entries(this.packoutComponentInputs)) {
             const el = document.getElementById(inputId);
             if (el) {
                 SESSION.components[key] = parseInt(el.value) || 0;
@@ -90,8 +118,14 @@ const Screens = {
             hasDoorBranding: false
         };
 
-        // Read component quantities
+        // Read component quantities (pretest)
         for (const [inputId, key] of Object.entries(this.componentInputs)) {
+            const el = document.getElementById(inputId);
+            values.components[key] = el ? (parseInt(el.value) || 0) : 0;
+        }
+
+        // Read packout component quantities
+        for (const [inputId, key] of Object.entries(this.packoutComponentInputs)) {
             const el = document.getElementById(inputId);
             values.components[key] = el ? (parseInt(el.value) || 0) : 0;
         }
@@ -105,8 +139,39 @@ const Screens = {
         return values;
     },
 
-    // Map photo location → one of four section keys
-    _sectionForLocation(location) {
+    // Set pill labels and reset classes based on current mode
+    _initSectionPills() {
+        const pills = [
+            document.getElementById('sect-front'),
+            document.getElementById('sect-rear'),
+            document.getElementById('sect-sides'),
+            document.getElementById('sect-labels')
+        ];
+        const labels = SESSION.mode === 'packout'
+            ? ['BEFORE', 'AFTER', 'LABELS', 'PARTS']
+            : ['FRONT', 'REAR', 'SIDES', 'LABELS'];
+        pills.forEach((pill, i) => {
+            if (pill) {
+                pill.textContent = labels[i];
+                pill.className = 'section-pill';
+            }
+        });
+    },
+
+    // Map photo → one of four section slot keys ('front'/'rear'/'sides'/'labels')
+    // For packout, uses photo.section; for pretest, uses photo.location.
+    _sectionForLocation(photo) {
+        if (!photo) return null;
+        if (SESSION.mode === 'packout') {
+            const sec = photo.section;
+            if (sec === 'before_bag')                                                      return 'front';
+            if (sec === 'fully_packaged')                                                  return 'rear';
+            if (sec === 'items' || sec === 'package_labels' ||
+                sec === 'paperwork' || sec === 'door_branding')                            return 'sides';
+            if (sec === 'assy_tag' || sec === 'accessory_kit')                            return 'labels';
+            return null;
+        }
+        const location = photo.location;
         if (!location) return null;
         if (location === 'front')                                                          return 'front';
         if (location === 'rear')                                                           return 'rear';
@@ -125,7 +190,7 @@ const Screens = {
             sides:  document.getElementById('sect-sides'),
             labels: document.getElementById('sect-labels')
         };
-        const curSec = currentPhoto ? this._sectionForLocation(currentPhoto.location) : null;
+        const curSec = currentPhoto ? this._sectionForLocation(currentPhoto) : null;
         const curIdx = order.indexOf(curSec);
 
         order.forEach((sec, idx) => {
@@ -187,6 +252,11 @@ const Screens = {
             // Re-apply current opacity setting after overlay re-render
             if (typeof App !== 'undefined') App._applyTemplateOpacity();
         }
+
+        // Prompt for switch stack orientation when entering first AT photo of each stack
+        if (SESSION.mode === 'packout' && typeof App !== 'undefined') {
+            App.checkSwitchOrientation();
+        }
     },
 
     // Render template overlay (PNG guide image on top of camera)
@@ -216,7 +286,8 @@ const Screens = {
 
         // Load template PNG as overlay
         const templateImg = document.createElement('img');
-        templateImg.src = `${CONFIG.templatePath}${photo.template}`;
+        const tplPath = SESSION.mode === 'packout' ? CONFIG.packoutTemplatePath : CONFIG.templatePath;
+        templateImg.src = `${tplPath}${photo.template}`;
         templateImg.className = 'w-full h-full object-contain';
         templateImg.alt = `Template: ${photo.id}`;
         // Opacity is managed on the parent #template-overlay div via App._applyTemplateOpacity()
