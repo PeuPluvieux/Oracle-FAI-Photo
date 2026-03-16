@@ -4,7 +4,7 @@
  * Strategy: cache-first for static assets, network-first for CDN with cache fallback.
  */
 
-const CACHE_VERSION = 'v9';
+const CACHE_VERSION = 'v10';
 const CACHE_NAME = `oracle-fai-${CACHE_VERSION}`;
 
 // All local static assets

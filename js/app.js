@@ -625,49 +625,113 @@ const App = {
 
     // ── Barcode Scanner ──────────────────────────────────────────
     _scannerReader: null,
+    _scannerStream: null,
+    _scannerAnimFrame: null,
 
     // Open scanner modal and start decoding for the given field
-    startScan(targetFieldId, fieldLabel) {
-        if (typeof ZXing === 'undefined') {
-            Screens.showError('Barcode scanner failed to load. Please check your internet connection.');
-            return;
-        }
-
+    async startScan(targetFieldId, fieldLabel) {
         document.getElementById('scanner-title').textContent = `Scan ${fieldLabel}`;
         document.getElementById('scanner-modal').classList.remove('hidden');
 
-        const reader = new ZXing.BrowserMultiFormatReader();
-        this._scannerReader = reader;
-
-        const videoEl = document.getElementById('scanner-video');
-        reader.decodeFromConstraints(
-            { audio: false, video: { facingMode: 'environment' } },
-            videoEl,
-            (result, err) => {
-                if (result) {
-                    const text = result.getText ? result.getText() : String(result);
-                    document.getElementById(targetFieldId).value = text;
-                    this.stopScan();
-                }
+        // Request camera with higher resolution for better barcode reads
+        const constraints = {
+            audio: false,
+            video: {
+                facingMode: 'environment',
+                width:  { ideal: 1280 },
+                height: { ideal: 720 }
             }
-        ).catch(() => {
+        };
+
+        let stream;
+        try {
+            stream = await navigator.mediaDevices.getUserMedia(constraints);
+        } catch {
             Screens.showError('Could not access camera for scanning. Check camera permissions.');
             this.stopScan();
+            return;
+        }
+
+        this._scannerStream = stream;
+        const videoEl = document.getElementById('scanner-video');
+        videoEl.srcObject = stream;
+        await videoEl.play();
+
+        // Try native BarcodeDetector first (Chrome/Edge on Android — very fast)
+        if ('BarcodeDetector' in window) {
+            this._startNativeScan(targetFieldId, videoEl);
+        } else if (typeof ZXing !== 'undefined') {
+            this._startZxingScan(targetFieldId, videoEl, stream);
+        } else {
+            Screens.showError('Barcode scanner failed to load. Please check your internet connection.');
+            this.stopScan();
+        }
+    },
+
+    // Native BarcodeDetector API (Chrome on Android — near-instant)
+    _startNativeScan(targetFieldId, videoEl) {
+        const detector = new BarcodeDetector({
+            formats: ['code_128', 'code_39', 'qr_code', 'data_matrix', 'pdf417']
+        });
+
+        const scan = async () => {
+            if (!this._scannerStream) return; // stopped
+            try {
+                const barcodes = await detector.detect(videoEl);
+                if (barcodes.length > 0) {
+                    document.getElementById(targetFieldId).value = barcodes[0].rawValue;
+                    this.stopScan();
+                    return;
+                }
+            } catch { /* frame not ready yet */ }
+            this._scannerAnimFrame = requestAnimationFrame(scan);
+        };
+        this._scannerAnimFrame = requestAnimationFrame(scan);
+    },
+
+    // ZXing fallback — restrict to relevant formats only (much faster than MultiFormat)
+    _startZxingScan(targetFieldId, videoEl, stream) {
+        const hints = new Map();
+        hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+            ZXing.BarcodeFormat.CODE_128,
+            ZXing.BarcodeFormat.CODE_39,
+            ZXing.BarcodeFormat.QR_CODE,
+            ZXing.BarcodeFormat.DATA_MATRIX
+        ]);
+        hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+
+        const reader = new ZXing.BrowserMultiFormatReader(hints);
+        this._scannerReader = reader;
+
+        // Feed the already-open stream directly instead of re-opening camera
+        reader.decodeFromStream(stream, videoEl, (result) => {
+            if (result) {
+                const text = result.getText ? result.getText() : String(result);
+                document.getElementById(targetFieldId).value = text;
+                this.stopScan();
+            }
         });
     },
 
     // Stop scanner and release camera stream
     stopScan() {
+        // Cancel native scan loop
+        if (this._scannerAnimFrame) {
+            cancelAnimationFrame(this._scannerAnimFrame);
+            this._scannerAnimFrame = null;
+        }
+        // Stop ZXing reader
         if (this._scannerReader) {
             try { this._scannerReader.reset(); } catch (e) {}
             this._scannerReader = null;
         }
-        // Fully release the camera track so the main camera can start later
-        const video = document.getElementById('scanner-video');
-        if (video && video.srcObject) {
-            video.srcObject.getTracks().forEach(t => t.stop());
-            video.srcObject = null;
+        // Release camera stream
+        if (this._scannerStream) {
+            this._scannerStream.getTracks().forEach(t => t.stop());
+            this._scannerStream = null;
         }
+        const video = document.getElementById('scanner-video');
+        if (video) video.srcObject = null;
         document.getElementById('scanner-modal').classList.add('hidden');
     },
 
