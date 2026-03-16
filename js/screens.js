@@ -183,7 +183,7 @@ const Screens = {
             document.getElementById('sect-labels')
         ];
         const labels = SESSION.mode === 'packout'
-            ? ['AK BOX', 'RACK', 'PLASTIC', 'CARTON']
+            ? ['RACK', 'AK BOX', 'PLASTIC', 'CARTON']
             : ['FRONT', 'REAR', 'SIDES', 'LABELS'];
         pills.forEach((pill, i) => {
             if (pill) {
@@ -199,8 +199,8 @@ const Screens = {
         if (!photo) return null;
         if (SESSION.mode === 'packout') {
             const sec = photo.section;
-            if (sec === 'assy_tag' || sec === 'accessory_kit') return 'front';   // AK BOX pill
-            if (sec === 'before_bag')                          return 'rear';    // RACK pill
+            if (sec === 'before_bag')                          return 'front';   // RACK pill
+            if (sec === 'assy_tag' || sec === 'accessory_kit') return 'rear';    // AK BOX pill
             if (sec === 'bagged_rack')                         return 'sides';   // PLASTIC pill
             if (sec === 'rack_in_carton')                      return 'labels';  // CARTON pill
             return null;
@@ -277,10 +277,24 @@ const Screens = {
             // Section pills
             this._updateSectionPills(currentPhoto);
 
-            // Landscape rotation prompt
+            // Landscape rotation prompt — flash 2× then auto-dismiss via animationend
             const isLandscape = currentPhoto.orientation === 'landscape';
             const prompt = document.getElementById('landscape-prompt');
-            if (prompt) prompt.classList.toggle('hidden', !isLandscape);
+            if (prompt) {
+                if (isLandscape) {
+                    // Cancel any in-progress flash from a previous landscape photo.
+                    // Must remove 'hidden' BEFORE the reflow so the element is in the
+                    // layout tree — offsetWidth on display:none returns 0 and doesn't
+                    // commit the class removal, so the animation won't restart.
+                    prompt.classList.remove('landscape-prompt-active');
+                    prompt.classList.remove('hidden');
+                    void prompt.offsetWidth; // force reflow to restart animation
+                    prompt.classList.add('landscape-prompt-active');
+                } else {
+                    prompt.classList.add('hidden');
+                    prompt.classList.remove('landscape-prompt-active');
+                }
+            }
 
             this.renderTemplateOverlay(currentPhoto);
             // Re-apply current opacity setting after overlay re-render

@@ -98,6 +98,18 @@
     60%       { transform: rotate(-90deg); }
 }
 
+@keyframes landscape-prompt-flash {
+    0%   { opacity: 1; }
+    18%  { opacity: 0.1; }
+    36%  { opacity: 1; }
+    54%  { opacity: 0.1; }
+    72%  { opacity: 1; }
+    100% { opacity: 0; }
+}
+.landscape-prompt-active {
+    animation: landscape-prompt-flash 2.4s ease-in-out forwards;
+}
+
 /* ── Zoom indicator ─────────────────────────────────────────────────────── */
 #zoom-indicator {
     pointer-events: none;

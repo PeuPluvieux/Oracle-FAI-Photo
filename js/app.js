@@ -350,17 +350,12 @@ const App = {
             btn.querySelector('svg').classList.toggle('text-gray-400', !on);
         });
 
-        // Auto-dismiss landscape prompt on device rotation (resize fires after dimensions update)
-        window.addEventListener('resize', () => {
+        // Auto-hide landscape prompt after flash animation completes
+        document.getElementById('landscape-prompt').addEventListener('animationend', (e) => {
+            if (e.animationName !== 'landscape-prompt-flash') return;
             const prompt = document.getElementById('landscape-prompt');
-            if (!prompt || Screens.currentScreen !== 'camera') return;
-            const isLandscape = window.innerWidth > window.innerHeight;
-            if (isLandscape) {
-                prompt.classList.add('hidden');
-            } else {
-                const photo = SESSION.getCurrentPhoto();
-                prompt.classList.toggle('hidden', !(photo && photo.orientation === 'landscape'));
-            }
+            prompt.classList.add('hidden');
+            prompt.classList.remove('landscape-prompt-active');
         });
 
         // Rotate selected photos on review screen
