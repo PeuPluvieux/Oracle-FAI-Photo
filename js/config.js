@@ -7,9 +7,10 @@ const CONFIG = {
     // Photo settings - single portrait mode, no cropping
     // Full camera resolution is captured; no forced aspect ratio
     photo: {
-        format:        'image/jpeg',
-        quality:       0.92,   // capture quality — kept high, stored in IndexedDB
-        exportQuality: 0.72    // re-encode quality for ZIP export (~400–600 KB/photo)
+        format:             'image/jpeg',
+        quality:            0.92,    // capture quality — stored in IndexedDB
+        exportQuality:      0.65,    // re-encode quality for ZIP (lowered from 0.72)
+        maxExportDimension: 1600     // longest side cap — portrait → 1200×1600, landscape → 1600×1200
     },
 
     // Template base paths (relative to project root)

@@ -66,7 +66,7 @@
             </button>
         </div>
         <footer class="absolute bottom-4 text-gray-500 text-sm">
-            Oracle FAI Photos v2.1
+            Oracle FAI Photos <span class="sw-version">…</span>
         </footer>
     </section>
 
@@ -83,7 +83,7 @@
             </button>
         </div>
         <footer class="absolute bottom-4 text-gray-500 text-sm">
-            Oracle FAI Photos v2.1
+            Oracle FAI Photos <span class="sw-version">…</span>
         </footer>
     </section>
 
@@ -570,6 +570,23 @@
                     .then(reg => console.log('[SW] Registered, scope:', reg.scope))
                     .catch(err => console.warn('[SW] Registration failed:', err));
             });
+        }
+
+        // Display the active SW cache version in all footers
+        function updateVersionDisplay() {
+            if (!('caches' in window)) return;
+            caches.keys().then(keys => {
+                const faiKeys = keys.filter(k => k.startsWith('oracle-fai-'));
+                const label = faiKeys.length
+                    ? faiKeys.map(k => k.replace('oracle-fai-', '')).join(' + ')
+                    : '(no cache)';
+                document.querySelectorAll('.sw-version').forEach(el => el.textContent = label);
+            });
+        }
+        updateVersionDisplay();
+        // Re-check after SW activates in case it upgrades mid-session
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('controllerchange', updateVersionDisplay);
         }
     </script>
 </body>

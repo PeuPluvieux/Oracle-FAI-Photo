@@ -86,18 +86,38 @@ const Export = {
         return zipBlob;
     },
 
+    // ── Scale helper: returns a canvas capped at maxExportDimension ───────
+    _scaledCanvas(img) {
+        const max = CONFIG.photo.maxExportDimension;
+        let w = img.width, h = img.height;
+        if (w > max || h > max) {
+            if (w >= h) { h = Math.round(h * max / w); w = max; }
+            else        { w = Math.round(w * max / h); h = max; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        return canvas;
+    },
+
     // ── Rotate portrait → landscape ────────────────────────────────────────
     rotateImageToLandscape(dataUrl) {
         return new Promise(resolve => {
             const img = new Image();
             img.onload = () => {
+                // Scale based on pre-rotation dimensions; post-rotation longest side = img.height
+                const max = CONFIG.photo.maxExportDimension;
+                let sw = img.width, sh = img.height;
+                if (sh > max || sw > max) {
+                    if (sh >= sw) { sw = Math.round(sw * max / sh); sh = max; }
+                    else          { sh = Math.round(sh * max / sw); sw = max; }
+                }
+                // Canvas is rotated: width=sh, height=sw
                 const canvas = document.createElement('canvas');
-                canvas.width  = img.height;
-                canvas.height = img.width;
+                canvas.width = sh; canvas.height = sw;
                 const ctx = canvas.getContext('2d');
                 ctx.translate(canvas.width, 0);
                 ctx.rotate(Math.PI / 2);
-                ctx.drawImage(img, 0, 0);
+                ctx.drawImage(img, 0, 0, sw, sh);
                 canvas.toBlob(blob => resolve(blob), CONFIG.photo.format, CONFIG.photo.exportQuality);
             };
             img.src = dataUrl;
@@ -109,10 +129,8 @@ const Export = {
         return new Promise(resolve => {
             const img = new Image();
             img.onload = () => {
-                const canvas = document.createElement('canvas');
-                canvas.width  = img.width;
-                canvas.height = img.height;
-                canvas.getContext('2d').drawImage(img, 0, 0);
+                const canvas = this._scaledCanvas(img);
+                canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
                 canvas.toBlob(blob => resolve(blob), CONFIG.photo.format, CONFIG.photo.exportQuality);
             };
             img.src = dataUrl;
