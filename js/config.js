@@ -101,9 +101,9 @@ const CONFIG = {
                 prefix: 'BSW',
                 location: 'rear',
                 angles: [
-                    { suffix: 'F', name: 'Front', template: 'BSW F.png', orientation: 'landscape' },
-                    { suffix: 'L', name: 'Left', template: 'BSW L.png', orientation: 'landscape' },
-                    { suffix: 'R', name: 'Right', template: 'BSW R.png', orientation: 'landscape' }
+                    { suffix: 'F', name: 'Front', template: 'BSW F.png', orientation: 'portrait' },
+                    { suffix: 'L', name: 'Left',  template: 'BSW L.png', orientation: 'portrait' },
+                    { suffix: 'R', name: 'Right', template: 'BSW R.png', orientation: 'portrait' }
                 ]
             }
         },
@@ -124,9 +124,9 @@ const CONFIG = {
                 prefix: 'BSV',
                 location: 'rear',
                 angles: [
-                    { suffix: 'F', name: 'Front', template: 'BSV F.png', orientation: 'portrait' },
-                    { suffix: 'L', name: 'Left',  template: 'BSV L.png', orientation: 'portrait' },
-                    { suffix: 'R', name: 'Right', template: 'BSV R.png', orientation: 'portrait' }
+                    { suffix: 'F', name: 'Front', template: 'BSV F.png', orientation: 'landscape' },
+                    { suffix: 'L', name: 'Left',  template: 'BSV L.png', orientation: 'landscape' },
+                    { suffix: 'R', name: 'Right', template: 'BSV R.png', orientation: 'landscape' }
                 ]
             }
         },
@@ -410,22 +410,22 @@ const SESSION = {
         }
         // Switch stack full views + front assy tags
         for (let st = 1; st <= this.components.pkSwitches; st++) {
-            this._addPhoto({ id: `SW${st}`, name: `Switch Stack ${st} - Full View`, orientation: 'portrait', section: 'assy_tag', location: 'front', template: 'SW.png' });
+            this._addPhoto({ id: `SW${st}`, name: `Switch Stack ${st} - Full View`, orientation: 'landscape', section: 'assy_tag', location: 'front', template: 'SW.png' });
             for (let sw = 1; sw <= this.components.pkSwitchesPerStackFront; sw++) {
-                this._addPhoto({ id: `SW${st}AT${sw}`, name: `Switch Stack ${st} - Assy Tag ${sw} Front`, orientation: 'portrait', section: 'assy_tag', location: 'front', template: 'SW AT.png' });
+                this._addPhoto({ id: `SW${st}AT${sw}`, name: `Switch Stack ${st} - Assy Tag ${sw} Front`, orientation: 'landscape', section: 'assy_tag', location: 'front', template: 'SW AT.png' });
             }
         }
         // Server group rear views + rear assy tags
         for (let g = 1; g <= this.components.pkServers; g++) {
-            this._addPhoto({ id: `BSV${g}F`, name: `Server Group ${g} - Full Rear View`, orientation: 'portrait', section: 'assy_tag', location: 'rear', template: 'BSV F.png' });
+            this._addPhoto({ id: `BSV${g}F`, name: `Server Group ${g} - Full Rear View`, orientation: 'landscape', section: 'assy_tag', location: 'rear', template: 'BSV F.png' });
             for (let s = 1; s <= this.components.pkServersPerGroupRear; s++) {
-                this._addPhoto({ id: `BSV${g}AT${s}`, name: `Server Group ${g} - Assy Tag ${s} Rear`, orientation: 'portrait', section: 'assy_tag', location: 'rear', template: 'BSV AT.png' });
+                this._addPhoto({ id: `BSV${g}AT${s}`, name: `Server Group ${g} - Assy Tag ${s} Rear`, orientation: 'landscape', section: 'assy_tag', location: 'rear', template: 'BSV AT.png' });
             }
         }
         // Switch stack rear assy tags
         for (let st = 1; st <= this.components.pkSwitches; st++) {
             for (let sw = 1; sw <= this.components.pkSwitchesPerStackRear; sw++) {
-                this._addPhoto({ id: `BSW${st}AT${sw}`, name: `Switch Stack ${st} - Assy Tag ${sw} Rear`, orientation: 'portrait', section: 'assy_tag', location: 'rear', template: 'BSW AT.png' });
+                this._addPhoto({ id: `BSW${st}AT${sw}`, name: `Switch Stack ${st} - Assy Tag ${sw} Rear`, orientation: 'landscape', section: 'assy_tag', location: 'rear', template: 'BSW AT.png' });
             }
         }
         // AK PNs (bubble mailers)
