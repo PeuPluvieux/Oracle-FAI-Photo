@@ -365,9 +365,9 @@
 
         <!-- Controls -->
         <div class="bg-oracle-primary px-4 pt-3" style="padding-bottom: max(env(safe-area-inset-bottom), 0.75rem)">
-            <div class="flex items-center justify-between max-w-md mx-auto">
+            <div class="flex items-center max-w-md mx-auto">
                 <!-- Gallery + Torch buttons -->
-                <div class="flex items-center gap-2">
+                <div class="flex-1 flex items-center gap-2">
                 <button id="gallery-btn" class="relative w-12 h-12 rounded-xl overflow-hidden border-2 border-gray-500 bg-gray-800 flex items-center justify-center" title="View captured photos">
                     <img id="last-photo-thumb" class="w-full h-full object-cover hidden" alt="Last photo">
                     <svg id="gallery-icon" class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -388,7 +388,7 @@
                 </button>
 
                 <!-- Skip (protected) -->
-                <div class="flex flex-col items-center gap-1">
+                <div class="flex-1 flex flex-col items-end gap-1">
                     <button id="skip-btn" class="skip-btn-idle text-gray-400 text-sm font-medium px-3 py-1 rounded-lg transition-all">Skip</button>
                     <span class="text-gray-500 text-xs"><span id="photos-remaining">0</span> left</span>
                 </div>
@@ -576,10 +576,12 @@
         function updateVersionDisplay() {
             if (!('caches' in window)) return;
             caches.keys().then(keys => {
-                const faiKeys = keys.filter(k => k.startsWith('oracle-fai-'));
-                const label = faiKeys.length
-                    ? faiKeys.map(k => k.replace('oracle-fai-', '')).join(' + ')
-                    : '(no cache)';
+                const faiKeys = keys.filter(k => k.startsWith('oracle-fai-v'));
+                let label = '(no cache)';
+                if (faiKeys.length) {
+                    const nums = faiKeys.map(k => parseInt(k.replace('oracle-fai-v', ''), 10));
+                    label = 'v2.' + Math.max(...nums);
+                }
                 document.querySelectorAll('.sw-version').forEach(el => el.textContent = label);
             });
         }
