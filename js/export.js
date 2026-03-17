@@ -115,8 +115,8 @@ const Export = {
                 const canvas = document.createElement('canvas');
                 canvas.width = sh; canvas.height = sw;
                 const ctx = canvas.getContext('2d');
-                ctx.translate(canvas.width, 0);
-                ctx.rotate(Math.PI / 2);
+                ctx.translate(0, canvas.height);
+                ctx.rotate(-Math.PI / 2);
                 ctx.drawImage(img, 0, 0, sw, sh);
                 canvas.toBlob(blob => resolve(blob), CONFIG.photo.format, CONFIG.photo.exportQuality);
             };

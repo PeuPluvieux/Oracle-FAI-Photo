@@ -9,8 +9,8 @@ const CONFIG = {
     photo: {
         format:             'image/jpeg',
         quality:            0.92,    // capture quality — stored in IndexedDB
-        exportQuality:      0.65,    // re-encode quality for ZIP (lowered from 0.72)
-        maxExportDimension: 1600     // longest side cap — portrait → 1200×1600, landscape → 1600×1200
+        exportQuality:      0.85,    // re-encode quality for ZIP
+        maxExportDimension: 2400     // longest side cap — portrait → 1800×2400, landscape → 2400×1800
     },
 
     // Template base paths (relative to project root)
