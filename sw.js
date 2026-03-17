@@ -4,7 +4,7 @@
  * Strategy: cache-first for static assets, network-first for CDN with cache fallback.
  */
 
-const CACHE_VERSION = 'v20';
+const CACHE_VERSION = 'v21';
 const CACHE_NAME = `oracle-fai-${CACHE_VERSION}`;
 
 // All local static assets
@@ -31,7 +31,7 @@ const TEMPLATE_FILES = [
     'CB.png', 'CE%20C.png', 'CE%20O.png', 'CL.png',
     'FR1.png', 'FR2.png', 'FR3.png', 'FR4.png', 'FR5.png',
     'FR6.png', 'FR7.png', 'FR8.png', 'FR9.png',
-    'LB.png',
+    'LB1.png', 'LB2.png', 'LB3.png', 'LB4.png',
     'LS1.png', 'LS2.png', 'LS3.png',
     'PDUL.png', 'PDUR.png',
     'RR1.png', 'RR2.png', 'RR3.png', 'RR4.png', 'RR5.png',
