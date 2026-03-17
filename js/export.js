@@ -67,7 +67,7 @@ const Export = {
             if (fullPhoto.orientation === 'landscape') {
                 blob = await this.rotateImageToLandscape(fullPhoto.dataUrl);
             } else {
-                blob = Capture.dataUrlToBlob(fullPhoto.dataUrl);
+                blob = await this.reencodeForExport(fullPhoto.dataUrl);
             }
             zip.file(sp.filename, blob);
 
@@ -98,7 +98,22 @@ const Export = {
                 ctx.translate(canvas.width, 0);
                 ctx.rotate(Math.PI / 2);
                 ctx.drawImage(img, 0, 0);
-                canvas.toBlob(blob => resolve(blob), CONFIG.photo.format, CONFIG.photo.quality);
+                canvas.toBlob(blob => resolve(blob), CONFIG.photo.format, CONFIG.photo.exportQuality);
+            };
+            img.src = dataUrl;
+        });
+    },
+
+    // Re-encode a dataUrl at CONFIG.photo.exportQuality without rotating
+    reencodeForExport(dataUrl) {
+        return new Promise(resolve => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width  = img.width;
+                canvas.height = img.height;
+                canvas.getContext('2d').drawImage(img, 0, 0);
+                canvas.toBlob(blob => resolve(blob), CONFIG.photo.format, CONFIG.photo.exportQuality);
             };
             img.src = dataUrl;
         });
@@ -111,14 +126,25 @@ const Export = {
             if (!zipBlob) { this._hideProgress(); return; }
             setTimeout(() => this._hideProgress(), 500);
 
-            const url  = URL.createObjectURL(zipBlob);
-            const link = document.createElement('a');
-            link.href     = url;
-            link.download = this.getZipFilename();
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+            const zipFilename = this.getZipFilename();
+            const zipFile = new File([zipBlob], zipFilename, { type: 'application/zip' });
+
+            // iOS PWA: navigator.share is the only reliable way to save a file
+            if (navigator.canShare && navigator.canShare({ files: [zipFile] })) {
+                try {
+                    await navigator.share({
+                        title: `FAI Photos — ${zipFilename}`,
+                        files: [zipFile]
+                    });
+                    return;
+                } catch (err) {
+                    if (err.name === 'AbortError') return;  // user cancelled
+                    console.warn('Web Share failed, falling back to link download:', err);
+                }
+            }
+
+            // Desktop / non-PWA Safari fallback
+            this.downloadZipBlob(zipBlob, zipFilename);
         } catch (e) {
             this._hideProgress();
             Screens.showError('Failed to build ZIP. Please try again.');
@@ -189,6 +215,27 @@ const Export = {
                 const ctx = canvas.getContext('2d');
                 ctx.translate(canvas.width, 0);
                 ctx.rotate(Math.PI / 2);
+                ctx.drawImage(img, 0, 0);
+                canvas.toBlob(blob => {
+                    const reader = new FileReader();
+                    reader.onload = e => resolve(e.target.result);
+                    reader.readAsDataURL(blob);
+                }, CONFIG.photo.format, CONFIG.photo.quality);
+            };
+            img.src = dataUrl;
+        });
+    },
+
+    // Rotate a dataUrl 90° counter-clockwise; returns a new dataUrl
+    rotateImage90CCW(dataUrl) {
+        return new Promise(resolve => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.height; canvas.height = img.width;
+                const ctx = canvas.getContext('2d');
+                ctx.translate(0, canvas.height);
+                ctx.rotate(-Math.PI / 2);
                 ctx.drawImage(img, 0, 0);
                 canvas.toBlob(blob => {
                     const reader = new FileReader();

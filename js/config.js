@@ -7,8 +7,9 @@ const CONFIG = {
     // Photo settings - single portrait mode, no cropping
     // Full camera resolution is captured; no forced aspect ratio
     photo: {
-        format: 'image/jpeg',
-        quality: 0.92
+        format:        'image/jpeg',
+        quality:       0.92,   // capture quality — kept high, stored in IndexedDB
+        exportQuality: 0.72    // re-encode quality for ZIP export (~400–600 KB/photo)
     },
 
     // Template base paths (relative to project root)
@@ -123,9 +124,9 @@ const CONFIG = {
                 prefix: 'BSV',
                 location: 'rear',
                 angles: [
-                    { suffix: 'F', name: 'Front', template: 'BSV F.png', orientation: 'landscape' },
-                    { suffix: 'L', name: 'Left', template: 'BSV L.png', orientation: 'landscape' },
-                    { suffix: 'R', name: 'Right', template: 'BSV R.png', orientation: 'landscape' }
+                    { suffix: 'F', name: 'Front', template: 'BSV F.png', orientation: 'portrait' },
+                    { suffix: 'L', name: 'Left',  template: 'BSV L.png', orientation: 'portrait' },
+                    { suffix: 'R', name: 'Right', template: 'BSV R.png', orientation: 'portrait' }
                 ]
             }
         },
@@ -416,9 +417,9 @@ const SESSION = {
         }
         // Server group rear views + rear assy tags
         for (let g = 1; g <= this.components.pkServers; g++) {
-            this._addPhoto({ id: `BSV${g}F`, name: `Server Group ${g} - Full Rear View`, orientation: 'landscape', section: 'assy_tag', location: 'rear', template: 'BSV F.png' });
+            this._addPhoto({ id: `BSV${g}F`, name: `Server Group ${g} - Full Rear View`, orientation: 'portrait', section: 'assy_tag', location: 'rear', template: 'BSV F.png' });
             for (let s = 1; s <= this.components.pkServersPerGroupRear; s++) {
-                this._addPhoto({ id: `BSV${g}AT${s}`, name: `Server Group ${g} - Assy Tag ${s} Rear`, orientation: 'landscape', section: 'assy_tag', location: 'rear', template: 'BSV AT.png' });
+                this._addPhoto({ id: `BSV${g}AT${s}`, name: `Server Group ${g} - Assy Tag ${s} Rear`, orientation: 'portrait', section: 'assy_tag', location: 'rear', template: 'BSV AT.png' });
             }
         }
         // Switch stack rear assy tags
@@ -468,22 +469,9 @@ const SESSION = {
         });
     },
 
-    // Generate filename: {PN}_{SN}_{ID}.jpg or just {ID}.jpg
+    // Generate filename: {ID}.jpg (PN/SN already appear in the ZIP filename)
     generateFilename(photo) {
-        const id = photo.id;
-        let filename = '';
-
-        if (this.partNumber && this.serialNumber) {
-            filename = `${this.partNumber}_${this.serialNumber}_${id}.jpg`;
-        } else if (this.partNumber) {
-            filename = `${this.partNumber}_${id}.jpg`;
-        } else if (this.serialNumber) {
-            filename = `${this.serialNumber}_${id}.jpg`;
-        } else {
-            filename = `${id}.jpg`;
-        }
-
-        return filename;
+        return `${photo.id}.jpg`;
     },
 
     // Get current photo info

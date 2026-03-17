@@ -76,6 +76,31 @@ Supports two modes: **Pretest FAI** and **Packout FAI**.
 - `SESSION.switchOrientations = {}` reset on fresh `startCameraSession()`
 - `_pendingStackNum` property tracks which stack is awaiting orientation choice
 
+### Bug Fixes (v18 — 2026-03-17)
+
+#### Config (`js/config.js`)
+- **BSV pretest orientation**: all 3 back-server angles (BSV F/L/R) changed `'landscape'` → `'portrait'` (templates are actually portrait)
+- **BSV packout orientation**: `BSV{g}F` and `BSV{g}AT{s}` in `_buildPackoutQueue()` changed `'landscape'` → `'portrait'`
+- **Export quality**: added `exportQuality: 0.72` to `CONFIG.photo` — used for ZIP re-encoding to reduce file size
+- **Photo filenames**: `generateFilename()` simplified to always return `{ID}.jpg` (PN/SN already appear in ZIP filename)
+
+#### CSS (`css/styles.css`)
+- **Landscape template fill**: added `#template-overlay img.template-rotated` rule that sets `width: calc(100% * 4/3)` / `height: calc(100% * 3/4)` before the 90° rotation, so the image fills the full 3:4 viewport instead of rendering smaller
+
+#### Screens (`js/screens.js`)
+- **`renderTemplateOverlay()`**: for landscape photos, removes `w-full h-full` Tailwind classes before adding `template-rotated` (the CSS rule above handles sizing)
+
+#### Export (`js/export.js`)
+- **`reencodeForExport()`**: new helper that re-encodes a portrait photo at `exportQuality` via canvas; used in `buildZip()` instead of raw `dataUrlToBlob()` to significantly reduce ZIP file size
+- **`rotateImageToLandscape()`**: switched from `CONFIG.photo.quality` → `CONFIG.photo.exportQuality`
+- **`downloadZip()`**: PWA-safe — tries `navigator.share({ files })` first (iOS Add-to-Home-Screen requires this); falls back to `<a>.click()` for desktop/non-PWA
+
+#### App (`js/app.js`)
+- **`startNewSession()`**: now calls `Camera.stop()` + `this.releaseWakeLock()` before resetting, preventing iOS camera stream conflicts when starting a new inspection mid-session
+
+#### SW (`sw.js`)
+- Bumped `CACHE_VERSION` from `v17` → `v18`
+
 ---
 
 ## Pending / Known TODOs

@@ -359,8 +359,19 @@ const App = {
         });
 
         // Rotate selected photos on review screen
-        document.getElementById('rotate-selected-btn').addEventListener('click', () => {
-            this.rotateSelectedPhotos();
+        document.getElementById('rotate-ccw-btn').addEventListener('click', () => {
+            this.rotateSelectedPhotos('ccw');
+        });
+        document.getElementById('rotate-cw-btn').addEventListener('click', () => {
+            this.rotateSelectedPhotos('cw');
+        });
+
+        // Rotate photo from preview modal
+        document.getElementById('preview-rotate-ccw-btn').addEventListener('click', () => {
+            this.rotatePreviewPhoto('ccw');
+        });
+        document.getElementById('preview-rotate-cw-btn').addEventListener('click', () => {
+            this.rotatePreviewPhoto('cw');
         });
 
         // Keyboard shortcuts
@@ -598,21 +609,21 @@ const App = {
         Screens.renderPhotosGrid();
     },
 
-    // Rotate selected photos 90° clockwise (from review screen)
-    async rotateSelectedPhotos() {
+    // Rotate selected photos from review screen — dir: 'cw' or 'ccw'
+    async rotateSelectedPhotos(dir) {
         const indices = Screens.getSelectedPhotos();
         if (indices.length === 0) { Screens.showError('Please select photos to rotate.'); return; }
+        const rotateFn = dir === 'ccw' ? Export.rotateImage90CCW.bind(Export) : Export.rotateImage90CW.bind(Export);
         for (const i of indices) {
             const photo = SESSION.capturedPhotos[i];
             if (!photo) continue;
-            const rotated = await Export.rotateImage90CW(photo.dataUrl);
+            const rotated = await rotateFn(photo.dataUrl);
             SESSION.capturedPhotos[i] = { ...photo, dataUrl: rotated };
-            // Update full-res in IndexedDB too
             try {
                 const all = await Storage.loadPhotos();
                 const full = all.find(p => p.id === photo.id);
                 if (full) {
-                    const rotatedFull = await Export.rotateImage90CW(full.dataUrl);
+                    const rotatedFull = await rotateFn(full.dataUrl);
                     Storage.savePhoto({ ...full, dataUrl: rotatedFull });
                 }
             } catch (e) {}
@@ -620,8 +631,31 @@ const App = {
         Screens.renderPhotosGrid();
     },
 
+    // Rotate the currently-previewed photo (called from preview modal rotate buttons)
+    async rotatePreviewPhoto(dir) {
+        const index = parseInt(document.getElementById('preview-retake-btn').dataset.index);
+        const photo = SESSION.capturedPhotos[index];
+        if (!photo) return;
+        const rotateFn = dir === 'ccw' ? Export.rotateImage90CCW.bind(Export) : Export.rotateImage90CW.bind(Export);
+        const rotated = await rotateFn(photo.dataUrl);
+        SESSION.capturedPhotos[index] = { ...photo, dataUrl: rotated };
+        // Update preview image immediately
+        document.getElementById('preview-photo-img').src = rotated;
+        // Update full-res in IndexedDB too
+        try {
+            const all = await Storage.loadPhotos();
+            const full = all.find(p => p.id === photo.id);
+            if (full) {
+                const rotatedFull = await rotateFn(full.dataUrl);
+                Storage.savePhoto({ ...full, dataUrl: rotatedFull });
+            }
+        } catch (e) {}
+    },
+
     // Start new session - clear everything
     async startNewSession() {
+        Camera.stop();           // release stream if still running
+        this.releaseWakeLock();
         SESSION.reset();
         await Storage.clearAll();
         Screens.show('landing');

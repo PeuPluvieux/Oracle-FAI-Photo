@@ -48,6 +48,15 @@
     transform-origin: center center;
 }
 
+/* Landscape template images: swap CSS dimensions before the 90° rotation
+   so the image fills the 3:4 viewport after it's rotated.            */
+#template-overlay img.template-rotated {
+    width: calc(100% * 4 / 3);
+    height: calc(100% * 3 / 4);
+    max-width: unset;
+    max-height: unset;
+}
+
 /* ── Section progress pills ─────────────────────────────────────────────── */
 .section-pill {
     padding: 2px 8px;

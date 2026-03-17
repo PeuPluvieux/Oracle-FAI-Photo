@@ -342,6 +342,7 @@ const Screens = {
 
         // Rotate landscape templates 90deg so they display in the portrait viewport
         if (isLandscape) {
+            templateImg.classList.remove('w-full', 'h-full');  // CSS rule handles size
             templateImg.classList.add('template-rotated');
         }
 
