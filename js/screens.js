@@ -181,7 +181,7 @@ const Screens = {
             document.getElementById('sect-labels')
         ];
         const labels = SESSION.mode === 'packout'
-            ? ['RACK', 'AK BOX', 'PLASTIC', 'CARTON']
+            ? ['AK BOX', 'RACK', 'PLASTIC', 'CARTON']
             : ['FRONT', 'REAR', 'SIDES', 'LABELS'];
         pills.forEach((pill, i) => {
             if (pill) {
@@ -197,8 +197,8 @@ const Screens = {
         if (!photo) return null;
         if (SESSION.mode === 'packout') {
             const sec = photo.section;
-            if (sec === 'before_bag')                          return 'front';   // RACK pill
-            if (sec === 'assy_tag' || sec === 'accessory_kit') return 'rear';    // AK BOX pill
+            if (sec === 'assy_tag' || sec === 'accessory_kit') return 'front';  // AK BOX pill
+            if (sec === 'before_bag')                          return 'rear';   // RACK pill
             if (sec === 'bagged_rack')                         return 'sides';   // PLASTIC pill
             if (sec === 'rack_in_carton')                      return 'labels';  // CARTON pill
             return null;

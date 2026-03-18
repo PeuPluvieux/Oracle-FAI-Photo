@@ -114,7 +114,7 @@ Supports two modes: **Pretest FAI** and **Packout FAI**.
 - **`startNewSession()`**: calls `Camera.stop()` + `this.releaseWakeLock()` before resetting to prevent iOS camera stream conflicts
 
 ### Current SW Version
-`CACHE_VERSION = 'v31'` in `sw.js`
+`CACHE_VERSION = 'v32'` in `sw.js`
 
 ---
 
@@ -185,7 +185,7 @@ Format: V{Major}.{SW_build}.{Patch}
 - SW_build: matches the SW cache version number (v31 → 31); bump with every feature/deploy
 - Patch: bump for bug fixes within the same SW build (no SW bump needed)
 - Major: bump for significant architectural overhauls only
-Current: V2.31.1
+Current: V2.32.0
 Always update APP_VERSION (and SW version if applicable) before committing any change.
 
 - Photo queue entries: `{ id, name, template, orientation, location, section }`
