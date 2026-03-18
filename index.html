@@ -196,17 +196,9 @@
                         </select>
                     </div>
                     <!-- Server AT sub-options (shown when Server Groups > 0) -->
-                    <div id="pk-server-at-options" class="hidden pl-3 space-y-2 border-l-2 border-oracle-accent">
-                        <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
-                            <label for="qty-pk-servers-per-group-front" class="text-sm font-medium">Servers w/ Front AT per Group</label>
-                            <input type="number" id="qty-pk-servers-per-group-front" min="0" max="20" value="0"
-                                   class="w-20 px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-center focus:outline-none focus:border-oracle-accent">
-                        </div>
-                        <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
-                            <label for="qty-pk-servers-per-group-rear" class="text-sm font-medium">Servers w/ Rear AT per Group</label>
-                            <input type="number" id="qty-pk-servers-per-group-rear" min="0" max="20" value="0"
-                                   class="w-20 px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-center focus:outline-none focus:border-oracle-accent">
-                        </div>
+                    <div id="pk-server-at-options" class="hidden pl-3 border-l-2 border-oracle-accent">
+                        <p class="text-xs text-gray-400 mb-2 mt-1">Assy tags per group:</p>
+                        <div id="pk-server-at-rows" class="space-y-2"></div>
                     </div>
                     <!-- Switch Stacks dropdown -->
                     <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
@@ -227,17 +219,17 @@
                         </select>
                     </div>
                     <!-- Switch AT sub-options (shown when Switch Stacks > 0) -->
-                    <div id="pk-switch-at-options" class="hidden pl-3 space-y-2 border-l-2 border-oracle-accent">
-                        <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
-                            <label for="qty-pk-switches-per-stack-front" class="text-sm font-medium">Switches w/ Front AT per Stack</label>
-                            <input type="number" id="qty-pk-switches-per-stack-front" min="0" max="20" value="0"
-                                   class="w-20 px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-center focus:outline-none focus:border-oracle-accent">
+                    <div id="pk-switch-at-options" class="hidden pl-3 border-l-2 border-oracle-accent">
+                        <p class="text-xs text-gray-400 mb-2 mt-1">Assy tags per stack:</p>
+                        <div id="pk-switch-at-rows" class="space-y-2"></div>
+                    </div>
+                    <!-- Additional Components -->
+                    <div class="p-3 bg-gray-800 rounded-lg">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-sm font-medium">Additional Components</span>
+                            <button id="add-custom-component" type="button" class="text-xs text-oracle-accent hover:text-white font-semibold px-2 py-1 rounded border border-oracle-accent hover:bg-oracle-accent transition-all">+ Add</button>
                         </div>
-                        <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
-                            <label for="qty-pk-switches-per-stack-rear" class="text-sm font-medium">Switches w/ Rear AT per Stack</label>
-                            <input type="number" id="qty-pk-switches-per-stack-rear" min="0" max="20" value="0"
-                                   class="w-20 px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-center focus:outline-none focus:border-oracle-accent">
-                        </div>
+                        <div id="pk-custom-component-rows" class="space-y-2 mt-2"></div>
                     </div>
                     <!-- Accessory Kit PNs -->
                     <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
@@ -290,6 +282,9 @@
                 </div>
 
                 <div class="flex items-center gap-2 flex-shrink-0">
+                    <button id="save-now-btn" class="hidden bg-green-700 hover:bg-green-600 text-white text-xs font-semibold py-1 px-2 rounded transition-all">
+                        Save
+                    </button>
                     <button id="finish-early-btn" class="hidden bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold py-1 px-3 rounded transition-all">
                         Finish
                     </button>
@@ -323,6 +318,15 @@
                 <video id="camera-preview" autoplay playsinline class="w-full h-full object-cover"></video>
                 <div id="template-overlay" class="absolute inset-0 pointer-events-none flex items-center justify-center">
                     <!-- Template PNG rendered here -->
+                </div>
+
+                <!-- Already-captured banner (shows when current photo was already taken) -->
+                <div id="already-captured-banner" class="hidden absolute top-0 inset-x-0 z-20 bg-amber-900/95 px-3 py-2 flex items-center justify-between gap-2">
+                    <span class="text-amber-200 text-xs font-semibold">Already captured</span>
+                    <div class="flex gap-2 flex-shrink-0">
+                        <button id="already-retake-btn" class="bg-orange-700 hover:bg-orange-600 text-white text-xs font-semibold py-1 px-3 rounded transition-all">Retake</button>
+                        <button id="already-keep-btn" class="bg-green-700 hover:bg-green-600 text-white text-xs font-semibold py-1 px-3 rounded transition-all">Keep &amp; Next</button>
+                    </div>
                 </div>
 
                 <!-- Landscape rotation prompt (inside viewport) -->

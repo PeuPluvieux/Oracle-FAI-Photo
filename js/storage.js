@@ -66,9 +66,18 @@ const Storage = {
 
             const tx = this.db.transaction(this.STORE_NAME, 'readwrite');
             tx.objectStore(this.STORE_NAME).put(record);
+            tx.onerror = (e) => {
+                console.error('Storage.savePhoto transaction error:', e.target.error);
+                if (window.App && typeof App.showToast === 'function') {
+                    App.showToast('⚠️ Photo save failed — storage may be full', 'error');
+                }
+            };
             // Fire-and-forget: don't await the transaction
         } catch (err) {
             console.error('Storage.savePhoto error:', err);
+            if (window.App && typeof App.showToast === 'function') {
+                App.showToast('⚠️ Photo save failed — storage may be full', 'error');
+            }
         }
     },
 

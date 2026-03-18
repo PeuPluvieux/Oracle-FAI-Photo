@@ -16,14 +16,11 @@ const Screens = {
     },
 
     // Packout component quantity input IDs mapped to SESSION.components keys
+    // (per-group AT arrays are managed dynamically by App._serverAtValues / _switchAtValues)
     packoutComponentInputs: {
-        'qty-pk-servers': 'pkServers',
-        'qty-pk-servers-per-group-front': 'pkServersPerGroupFront',
-        'qty-pk-servers-per-group-rear': 'pkServersPerGroupRear',
+        'qty-pk-servers':  'pkServers',
         'qty-pk-switches': 'pkSwitches',
-        'qty-pk-switches-per-stack-front': 'pkSwitchesPerStackFront',
-        'qty-pk-switches-per-stack-rear': 'pkSwitchesPerStackRear',
-        'qty-ak-pns': 'pkAkPns'
+        'qty-ak-pns':      'pkAkPns'
     },
 
     // Show a specific screen
@@ -54,7 +51,7 @@ const Screens = {
             if (el) el.value = 0;
         }
 
-        // Reset packout component inputs
+        // Reset packout simple count inputs
         for (const inputId of Object.keys(this.packoutComponentInputs)) {
             const el = document.getElementById(inputId);
             if (el) el.value = 0;
@@ -67,6 +64,9 @@ const Screens = {
         // Hide AT sub-options until a group/stack count is selected
         document.getElementById('pk-server-at-options').classList.add('hidden');
         document.getElementById('pk-switch-at-options').classList.add('hidden');
+
+        // Clear per-group AT rows and custom component rows
+        if (typeof App !== 'undefined') App._resetPackoutAtValues();
 
         // Show/hide options based on mode
         if (SESSION.mode === 'pretest') {
@@ -108,36 +108,21 @@ const Screens = {
             SESSION.hasDoorBranding = doorBranding.checked;
         }
 
-        // Show/hide server AT sub-options
+        // Show/hide server AT sub-options and refresh dynamic rows
         const serverAtDiv = document.getElementById('pk-server-at-options');
         if (serverAtDiv) {
-            if (SESSION.components.pkServers > 0) {
-                serverAtDiv.classList.remove('hidden');
-            } else {
-                serverAtDiv.classList.add('hidden');
-                SESSION.components.pkServersPerGroupFront = 0;
-                SESSION.components.pkServersPerGroupRear = 0;
-                const fEl = document.getElementById('qty-pk-servers-per-group-front');
-                const rEl = document.getElementById('qty-pk-servers-per-group-rear');
-                if (fEl) fEl.value = 0;
-                if (rEl) rEl.value = 0;
-            }
+            serverAtDiv.classList.toggle('hidden', SESSION.components.pkServers === 0);
+            if (typeof App !== 'undefined') App._renderServerAtRows();
         }
-        // Show/hide switch AT sub-options
+        // Show/hide switch AT sub-options and refresh dynamic rows
         const switchAtDiv = document.getElementById('pk-switch-at-options');
         if (switchAtDiv) {
-            if (SESSION.components.pkSwitches > 0) {
-                switchAtDiv.classList.remove('hidden');
-            } else {
-                switchAtDiv.classList.add('hidden');
-                SESSION.components.pkSwitchesPerStackFront = 0;
-                SESSION.components.pkSwitchesPerStackRear = 0;
-                const fEl = document.getElementById('qty-pk-switches-per-stack-front');
-                const rEl = document.getElementById('qty-pk-switches-per-stack-rear');
-                if (fEl) fEl.value = 0;
-                if (rEl) rEl.value = 0;
-            }
+            switchAtDiv.classList.toggle('hidden', SESSION.components.pkSwitches === 0);
+            if (typeof App !== 'undefined') App._renderSwitchAtRows();
         }
+
+        // Push per-group AT arrays into SESSION so calculateTotalPhotos uses current values
+        if (typeof App !== 'undefined') App._syncPackoutAtArrays();
 
         const count = SESSION.calculateTotalPhotos();
         document.getElementById('total-photo-count').textContent = count;
@@ -159,7 +144,7 @@ const Screens = {
             values.components[key] = el ? (parseInt(el.value) || 0) : 0;
         }
 
-        // Read packout component quantities
+        // Read packout simple counts
         for (const [inputId, key] of Object.entries(this.packoutComponentInputs)) {
             const el = document.getElementById(inputId);
             values.components[key] = el ? (parseInt(el.value) || 0) : 0;
@@ -249,10 +234,12 @@ const Screens = {
         // Progress bar
         document.getElementById('progress-bar').style.width = `${progress.percentage}%`;
 
-        // Finish Early button — show after first capture; hide mode badge to free space for section pills
+        // Finish Early / Save Now — show after first capture; hide mode badge to free space
         const showFinish = SESSION.capturedPhotos.length > 0;
         document.getElementById('finish-early-btn').classList.toggle('hidden', !showFinish);
         document.getElementById('fai-mode-badge').classList.toggle('hidden', showFinish);
+        const saveNowBtn = document.getElementById('save-now-btn');
+        if (saveNowBtn) saveNowBtn.classList.toggle('hidden', !showFinish);
 
         // Gallery count badge
         const count   = SESSION.capturedPhotos.length;
@@ -299,6 +286,14 @@ const Screens = {
             this.renderTemplateOverlay(currentPhoto);
             // Re-apply current opacity setting after overlay re-render
             if (typeof App !== 'undefined') App._applyTemplateOpacity();
+        }
+
+        // Already-captured banner — show when the current photo was already taken
+        const alreadyBanner = document.getElementById('already-captured-banner');
+        if (alreadyBanner && currentPhoto) {
+            const inRetakeMode = typeof App !== 'undefined' && App._retakeIndex !== null;
+            const alreadyCaptured = !inRetakeMode && SESSION.capturedPhotos.some(p => p.id === currentPhoto.id);
+            alreadyBanner.classList.toggle('hidden', !alreadyCaptured);
         }
 
         // Prompt for switch stack orientation when entering first AT photo of each stack

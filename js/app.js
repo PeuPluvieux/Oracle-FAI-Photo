@@ -165,23 +165,61 @@ const App = {
         // Packout door branding checkbox
         const doorBranding = document.getElementById('door-branding');
         if (doorBranding) {
-            doorBranding.addEventListener('change', () => {
-                Screens.updatePhotoCount();
-            });
+            doorBranding.addEventListener('change', () => Screens.updatePhotoCount());
         }
 
-        // Packout component quantity inputs (update photo count on change)
+        // Packout simple count inputs (pkServers, pkSwitches, pkAkPns)
         for (const inputId of Object.keys(Screens.packoutComponentInputs)) {
             const el = document.getElementById(inputId);
             if (el) {
-                el.addEventListener('input', () => {
-                    Screens.updatePhotoCount();
-                });
-                el.addEventListener('change', () => {
-                    Screens.updatePhotoCount();
-                });
+                el.addEventListener('input',  () => Screens.updatePhotoCount());
+                el.addEventListener('change', () => Screens.updatePhotoCount());
             }
         }
+
+        // When server group or switch stack count changes, re-render per-group AT rows
+        ['qty-pk-servers', 'qty-pk-switches'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input',  () => Screens.updatePhotoCount());
+                el.addEventListener('change', () => Screens.updatePhotoCount());
+            }
+        });
+
+        // Add custom component button
+        const addCustomBtn = document.getElementById('add-custom-component');
+        if (addCustomBtn) {
+            addCustomBtn.addEventListener('click', () => {
+                this._customComponentValues.push({ name: '', units: 1, frontATs: 0, rearATs: 0 });
+                this._renderCustomComponentRows();
+                this._syncPackoutAtArrays();
+                document.getElementById('total-photo-count').textContent = SESSION.calculateTotalPhotos();
+            });
+        }
+
+        // Save Now button
+        document.getElementById('save-now-btn')?.addEventListener('click', () => this.saveNow());
+
+        // Already-captured banner buttons
+        document.getElementById('already-keep-btn')?.addEventListener('click', () => {
+            document.getElementById('already-captured-banner').classList.add('hidden');
+            this.skipPhoto();
+        });
+        document.getElementById('already-retake-btn')?.addEventListener('click', () => {
+            const photo = SESSION.getCurrentPhoto();
+            if (!photo) return;
+            const capturedIndex = SESSION.capturedPhotos.findIndex(p => p.id === photo.id);
+            if (capturedIndex >= 0) {
+                this._retakeIndex      = capturedIndex;
+                this._retakeQueueIndex = SESSION.currentPhotoIndex;
+                // After retake completes, advance to the next uncaptured photo
+                this._savedPhotoIndex  = SESSION.currentPhotoIndex + 1 < SESSION.photoQueue.length
+                    ? SESSION.currentPhotoIndex + 1
+                    : SESSION.currentPhotoIndex;
+            }
+            document.getElementById('already-captured-banner').classList.add('hidden');
+            Screens.updateCameraUI();
+        });
 
         // Switch stack orientation modal buttons
         document.getElementById('switch-orient-portrait').addEventListener('click', () => {
@@ -414,6 +452,9 @@ const App = {
         // Set packout options
         SESSION.hasDoorBranding = formValues.hasDoorBranding;
 
+        // Sync per-group AT arrays into SESSION (packout only)
+        if (SESSION.mode === 'packout') this._syncPackoutAtArrays();
+
         // Initialize photo queue
         SESSION.initPhotoQueue();
 
@@ -480,8 +521,17 @@ const App = {
                 this._retakeQueueIndex = null;
                 this._savedPhotoIndex  = null;
 
-                Screens.updateCameraUI();
                 Screens.updateLastPhotoThumb();
+                Storage.saveSession(SESSION.toJSON());
+
+                // If the restored index is past the end of the queue, go to review
+                if (SESSION.currentPhotoIndex >= SESSION.photoQueue.length) {
+                    Camera.stop();
+                    Screens.show('review');
+                    Screens.renderPhotosGrid();
+                } else {
+                    Screens.updateCameraUI();
+                }
                 return;
             }
 
@@ -534,6 +584,11 @@ const App = {
     _retakeIndex: null,       // Index in capturedPhotos being retaken
     _retakeQueueIndex: null,  // Index in photoQueue for the photo being retaken
     _savedPhotoIndex: null,   // Original queue position to restore after retake
+
+    // Per-group AT values (maintained by dynamic row renderers)
+    _serverAtValues: [],        // [{ front: N, rear: N }, ...] — one per server group
+    _switchAtValues: [],        // [{ front: N, rear: N }, ...] — one per switch stack
+    _customComponentValues: [], // [{ name, units, frontATs, rearATs }, ...]
 
     // Retake a single photo from the gallery preview
     retakeSinglePhoto() {
@@ -675,6 +730,158 @@ const App = {
         this.releaseWakeLock();
         Screens.show('review');
         Screens.renderPhotosGrid();
+    },
+
+    // ── Per-group AT row rendering ────────────────────────────────────────
+
+    // Render per-server-group AT input rows; preserves existing values when count changes
+    _renderServerAtRows() {
+        const n = parseInt(document.getElementById('qty-pk-servers')?.value) || 0;
+        const container = document.getElementById('pk-server-at-rows');
+        if (!container) return;
+        const existing = this._serverAtValues;
+        this._serverAtValues = Array.from({ length: n }, (_, i) => existing[i] || { front: 0, rear: 0 });
+        if (n === 0) { container.innerHTML = ''; return; }
+        container.innerHTML = this._serverAtValues.map((v, i) => `
+            <div class="flex items-center gap-2 p-2 bg-gray-700 rounded-lg text-xs">
+                <span class="text-gray-300 font-semibold w-16 shrink-0">Group ${i + 1}</span>
+                <label class="text-gray-400 shrink-0">Front ATs</label>
+                <input type="number" min="0" max="20" value="${v.front}"
+                    class="w-12 px-1 py-1 rounded bg-gray-600 border border-gray-500 text-white text-center focus:outline-none focus:border-oracle-accent"
+                    data-group="${i}" data-side="front">
+                <label class="text-gray-400 shrink-0">Rear ATs</label>
+                <input type="number" min="0" max="20" value="${v.rear}"
+                    class="w-12 px-1 py-1 rounded bg-gray-600 border border-gray-500 text-white text-center focus:outline-none focus:border-oracle-accent"
+                    data-group="${i}" data-side="rear">
+            </div>`).join('');
+        container.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', () => {
+                const g = parseInt(input.dataset.group);
+                this._serverAtValues[g][input.dataset.side] = parseInt(input.value) || 0;
+                this._syncPackoutAtArrays();
+                document.getElementById('total-photo-count').textContent = SESSION.calculateTotalPhotos();
+            });
+        });
+    },
+
+    // Render per-switch-stack AT input rows; preserves existing values when count changes
+    _renderSwitchAtRows() {
+        const n = parseInt(document.getElementById('qty-pk-switches')?.value) || 0;
+        const container = document.getElementById('pk-switch-at-rows');
+        if (!container) return;
+        const existing = this._switchAtValues;
+        this._switchAtValues = Array.from({ length: n }, (_, i) => existing[i] || { front: 0, rear: 0 });
+        if (n === 0) { container.innerHTML = ''; return; }
+        container.innerHTML = this._switchAtValues.map((v, i) => `
+            <div class="flex items-center gap-2 p-2 bg-gray-700 rounded-lg text-xs">
+                <span class="text-gray-300 font-semibold w-16 shrink-0">Stack ${i + 1}</span>
+                <label class="text-gray-400 shrink-0">Front ATs</label>
+                <input type="number" min="0" max="20" value="${v.front}"
+                    class="w-12 px-1 py-1 rounded bg-gray-600 border border-gray-500 text-white text-center focus:outline-none focus:border-oracle-accent"
+                    data-stack="${i}" data-side="front">
+                <label class="text-gray-400 shrink-0">Rear ATs</label>
+                <input type="number" min="0" max="20" value="${v.rear}"
+                    class="w-12 px-1 py-1 rounded bg-gray-600 border border-gray-500 text-white text-center focus:outline-none focus:border-oracle-accent"
+                    data-stack="${i}" data-side="rear">
+            </div>`).join('');
+        container.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', () => {
+                const st = parseInt(input.dataset.stack);
+                this._switchAtValues[st][input.dataset.side] = parseInt(input.value) || 0;
+                this._syncPackoutAtArrays();
+                document.getElementById('total-photo-count').textContent = SESSION.calculateTotalPhotos();
+            });
+        });
+    },
+
+    // Render custom component rows
+    _renderCustomComponentRows() {
+        const container = document.getElementById('pk-custom-component-rows');
+        if (!container) return;
+        if (this._customComponentValues.length === 0) { container.innerHTML = ''; return; }
+        container.innerHTML = this._customComponentValues.map((comp, c) => `
+            <div class="p-2 bg-gray-700 rounded-lg space-y-2 border border-gray-600">
+                <div class="flex items-center gap-2">
+                    <input type="text" placeholder="Component name (e.g. Storage Array)" value="${comp.name}"
+                        class="flex-1 min-w-0 px-2 py-1 rounded bg-gray-600 border border-gray-500 text-white text-xs focus:outline-none focus:border-oracle-accent"
+                        data-custom="${c}" data-field="name">
+                    <button class="remove-custom-btn text-red-400 hover:text-red-300 text-sm font-bold px-1 shrink-0" data-custom="${c}">✕</button>
+                </div>
+                <div class="flex items-center gap-2 text-xs flex-wrap">
+                    <label class="text-gray-400 shrink-0">Units</label>
+                    <input type="number" min="1" max="20" value="${comp.units}"
+                        class="w-12 px-1 py-1 rounded bg-gray-600 border border-gray-500 text-white text-center focus:outline-none focus:border-oracle-accent"
+                        data-custom="${c}" data-field="units">
+                    <label class="text-gray-400 shrink-0">Front ATs</label>
+                    <input type="number" min="0" max="20" value="${comp.frontATs}"
+                        class="w-12 px-1 py-1 rounded bg-gray-600 border border-gray-500 text-white text-center focus:outline-none focus:border-oracle-accent"
+                        data-custom="${c}" data-field="frontATs">
+                    <label class="text-gray-400 shrink-0">Rear ATs</label>
+                    <input type="number" min="0" max="20" value="${comp.rearATs}"
+                        class="w-12 px-1 py-1 rounded bg-gray-600 border border-gray-500 text-white text-center focus:outline-none focus:border-oracle-accent"
+                        data-custom="${c}" data-field="rearATs">
+                </div>
+            </div>`).join('');
+        container.querySelectorAll('input[data-field="name"]').forEach(input => {
+            input.addEventListener('input', () => {
+                this._customComponentValues[parseInt(input.dataset.custom)].name = input.value;
+            });
+        });
+        container.querySelectorAll('input[data-field="units"], input[data-field="frontATs"], input[data-field="rearATs"]').forEach(input => {
+            input.addEventListener('input', () => {
+                this._customComponentValues[parseInt(input.dataset.custom)][input.dataset.field] = parseInt(input.value) || 0;
+                this._syncPackoutAtArrays();
+                document.getElementById('total-photo-count').textContent = SESSION.calculateTotalPhotos();
+            });
+        });
+        container.querySelectorAll('.remove-custom-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this._customComponentValues.splice(parseInt(btn.dataset.custom), 1);
+                this._renderCustomComponentRows();
+                this._syncPackoutAtArrays();
+                document.getElementById('total-photo-count').textContent = SESSION.calculateTotalPhotos();
+            });
+        });
+    },
+
+    // Push current AT arrays into SESSION.components (called before calculateTotalPhotos or initPhotoQueue)
+    _syncPackoutAtArrays() {
+        SESSION.components.pkServerGroupATs  = this._serverAtValues.slice(0, SESSION.components.pkServers  || 0);
+        SESSION.components.pkSwitchStackATs  = this._switchAtValues.slice(0, SESSION.components.pkSwitches || 0);
+        SESSION.components.pkCustomComponents = [...this._customComponentValues];
+    },
+
+    // Clear all per-group AT values and their DOM containers (called on info screen reset)
+    _resetPackoutAtValues() {
+        this._serverAtValues        = [];
+        this._switchAtValues        = [];
+        this._customComponentValues = [];
+        const sr = document.getElementById('pk-server-at-rows');        if (sr) sr.innerHTML = '';
+        const sw = document.getElementById('pk-switch-at-rows');        if (sw) sw.innerHTML = '';
+        const cx = document.getElementById('pk-custom-component-rows'); if (cx) cx.innerHTML = '';
+    },
+
+    // Save Now — download a partial ZIP of all photos captured so far
+    async saveNow() {
+        if (SESSION.capturedPhotos.length === 0) return;
+        const btn = document.getElementById('save-now-btn');
+        if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+        try {
+            await Export.downloadZip();
+        } finally {
+            if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
+        }
+    },
+
+    // Show a transient toast message (used for storage errors, etc.)
+    showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `fixed bottom-24 left-4 right-4 z-[100] py-2 px-4 rounded-lg text-sm font-semibold text-white text-center shadow-lg ${
+            type === 'error' ? 'bg-red-700' : 'bg-gray-700'
+        }`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
     },
 
     // ── Barcode Scanner ──────────────────────────────────────────

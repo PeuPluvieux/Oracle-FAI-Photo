@@ -305,12 +305,11 @@ const SESSION = {
         cableBend: 0,
         // Packout component quantities
         pkServers: 0,
-        pkServersPerGroupFront: 0,
-        pkServersPerGroupRear: 0,
         pkSwitches: 0,
-        pkSwitchesPerStackFront: 0,
-        pkSwitchesPerStackRear: 0,
-        pkAkPns: 0
+        pkAkPns: 0,
+        pkServerGroupATs: [],   // [{ front: N, rear: N }, ...] — one entry per server group
+        pkSwitchStackATs: [],   // [{ front: N, rear: N }, ...] — one entry per switch stack
+        pkCustomComponents: []  // [{ name: str, units: N, frontATs: N, rearATs: N }, ...]
     },
 
     // Packout options
@@ -401,35 +400,63 @@ const SESSION = {
         // === 1. Open rack FRONT ===
         ['AFR1', 'AFR2', 'AFR3'].forEach(id => this._addPhoto(po(id)));
 
-        // === 2. Component FRONTS ===
-        for (let g = 1; g <= this.components.pkServers; g++) {
+        // === 2. Component FRONTS — servers ===
+        this.components.pkServerGroupATs.forEach(({ front }, i) => {
+            const g = i + 1;
             this._addPhoto({ id: `SV${g}`, name: `Server Group ${g} - Full View`, orientation: 'landscape', section: 'assy_tag', location: 'front', template: 'SV.png' });
-            for (let s = 1; s <= this.components.pkServersPerGroupFront; s++) {
+            for (let s = 1; s <= front; s++)
                 this._addPhoto({ id: `SV${g}AT${s}`, name: `Server Group ${g} - Assy Tag ${s} Front`, orientation: 'landscape', section: 'assy_tag', location: 'front', template: 'SV AT.png' });
-            }
-        }
-        for (let st = 1; st <= this.components.pkSwitches; st++) {
+        });
+
+        // === 2b. Component FRONTS — switches ===
+        this.components.pkSwitchStackATs.forEach(({ front }, i) => {
+            const st = i + 1;
             this._addPhoto({ id: `SW${st}`, name: `Switch Stack ${st} - Full View`, orientation: 'landscape', section: 'assy_tag', location: 'front', template: 'SW.png' });
-            for (let sw = 1; sw <= this.components.pkSwitchesPerStackFront; sw++) {
+            for (let sw = 1; sw <= front; sw++)
                 this._addPhoto({ id: `SW${st}AT${sw}`, name: `Switch Stack ${st} - Assy Tag ${sw} Front`, orientation: 'landscape', section: 'assy_tag', location: 'front', template: 'SW AT.png' });
+        });
+
+        // === 2c. Component FRONTS — custom components ===
+        this.components.pkCustomComponents.forEach(({ name, units, frontATs }, c) => {
+            const cx = c + 1;
+            for (let u = 1; u <= units; u++) {
+                this._addPhoto({ id: `CC${cx}U${u}`, name: `${name} ${u} - Full View`, orientation: 'landscape', section: 'assy_tag', location: 'front', template: 'SV.png' });
+                for (let s = 1; s <= frontATs; s++)
+                    this._addPhoto({ id: `CC${cx}U${u}AT${s}`, name: `${name} ${u} - Assy Tag ${s} Front`, orientation: 'landscape', section: 'assy_tag', location: 'front', template: 'SV AT.png' });
             }
-        }
+        });
 
         // === 3. Open rack REAR ===
         ['ARR1', 'ARR2', 'ARR3'].forEach(id => this._addPhoto(po(id)));
 
-        // === 4. Component REARS ===
-        for (let g = 1; g <= this.components.pkServers; g++) {
-            this._addPhoto({ id: `BSV${g}F`, name: `Server Group ${g} - Full Rear View`, orientation: 'portrait', section: 'assy_tag', location: 'rear', template: 'BSV F.png' });
-            for (let s = 1; s <= this.components.pkServersPerGroupRear; s++) {
-                this._addPhoto({ id: `BSV${g}AT${s}`, name: `Server Group ${g} - Assy Tag ${s} Rear`, orientation: 'portrait', section: 'assy_tag', location: 'rear', template: 'BSV AT.png' });
-            }
-        }
-        for (let st = 1; st <= this.components.pkSwitches; st++) {
-            for (let sw = 1; sw <= this.components.pkSwitchesPerStackRear; sw++) {
+        // === 4. Component REARS — servers ===
+        this.components.pkServerGroupATs.forEach(({ rear }, i) => {
+            const g = i + 1;
+            if (rear > 0)
+                this._addPhoto({ id: `BSV${g}`, name: `Server Group ${g} - Full Rear View`, orientation: 'landscape', section: 'assy_tag', location: 'rear', template: 'BSV F.png' });
+            for (let s = 1; s <= rear; s++)
+                this._addPhoto({ id: `BSV${g}AT${s}`, name: `Server Group ${g} - Assy Tag ${s} Rear`, orientation: 'landscape', section: 'assy_tag', location: 'rear', template: 'BSV AT.png' });
+        });
+
+        // === 4b. Component REARS — switches (full rear view added when stack has rear ATs) ===
+        this.components.pkSwitchStackATs.forEach(({ rear }, i) => {
+            const st = i + 1;
+            if (rear > 0)
+                this._addPhoto({ id: `BSW${st}`, name: `Switch Stack ${st} - Full Rear View`, orientation: 'landscape', section: 'assy_tag', location: 'rear', template: 'BSW AT.png' });
+            for (let sw = 1; sw <= rear; sw++)
                 this._addPhoto({ id: `BSW${st}AT${sw}`, name: `Switch Stack ${st} - Assy Tag ${sw} Rear`, orientation: 'landscape', section: 'assy_tag', location: 'rear', template: 'BSW AT.png' });
+        });
+
+        // === 4c. Component REARS — custom components ===
+        this.components.pkCustomComponents.forEach(({ name, units, rearATs }, c) => {
+            const cx = c + 1;
+            for (let u = 1; u <= units; u++) {
+                if (rearATs > 0)
+                    this._addPhoto({ id: `BCC${cx}U${u}`, name: `${name} ${u} - Full Rear View`, orientation: 'landscape', section: 'assy_tag', location: 'rear', template: 'BSV F.png' });
+                for (let s = 1; s <= rearATs; s++)
+                    this._addPhoto({ id: `BCC${cx}U${u}AT${s}`, name: `${name} ${u} - Assy Tag ${s} Rear`, orientation: 'landscape', section: 'assy_tag', location: 'rear', template: 'BSV AT.png' });
             }
-        }
+        });
 
         // === 5. PDUs ===
         ['PDU1', 'PDU2', 'PDU3', 'PDU4', 'PDU5', 'PDU6', 'PDUAT1', 'PDUAT2'].forEach(id => this._addPhoto(po(id)));
@@ -438,9 +465,8 @@ const SESSION = {
         ['SN', 'FRAT', 'LB1', 'LB2', 'LB3', 'LB4'].forEach(id => this._addPhoto(po(id)));
 
         // === 7. Accessory kits ===
-        for (let n = 1; n <= this.components.pkAkPns; n++) {
+        for (let n = 1; n <= this.components.pkAkPns; n++)
             this._addPhoto({ id: `AK${n}`, name: `Accessory Kit PN ${n}`, orientation: 'landscape', section: 'accessory_kit', location: 'accessory_kit', template: 'AK.png' });
-        }
         for (const photo of CONFIG.packoutAkbPhotos) this._addPhoto(photo);
 
         // === 8–9. Bagged rack (front then rear) ===
@@ -449,9 +475,8 @@ const SESSION = {
         // === 10–13. Crated rack ===
         ['CFR1', 'CFR2', 'CFRTT', 'CRR1', 'CRR2', 'CRR3', 'CRS1', 'CRS3', 'CRSTT', 'CLS1', 'CSN', 'CCI'].forEach(id => this._addPhoto(po(id)));
 
-        if (this.hasDoorBranding) {
+        if (this.hasDoorBranding)
             for (const photo of CONFIG.packoutDoorBranding) this._addPhoto(photo);
-        }
     },
 
     // Add array of photos to queue
@@ -526,13 +551,25 @@ const SESSION = {
             }
         } else if (this.mode === 'packout') {
             count = CONFIG.packoutDefaultPhotos.length;
-            if (this.hasDoorBranding) {
-                count += CONFIG.packoutDoorBranding.length;
+            if (this.hasDoorBranding) count += CONFIG.packoutDoorBranding.length;
+
+            // Per server group: SV full view + front ATs + (BSV full view if rear > 0) + rear ATs
+            for (const g of this.components.pkServerGroupATs) {
+                count += 1 + g.front;
+                if (g.rear > 0) count += 1;
+                count += g.rear;
             }
-            // Per server group: SV (1) + front AT + BSV F (1) + rear AT = 2 + front + rear
-            count += this.components.pkServers * (2 + this.components.pkServersPerGroupFront + this.components.pkServersPerGroupRear);
-            // Per switch stack: SW (1) + front AT + rear AT = 1 + front + rear
-            count += this.components.pkSwitches * (1 + this.components.pkSwitchesPerStackFront + this.components.pkSwitchesPerStackRear);
+            // Per switch stack: SW full view + front ATs + (BSW full view if rear > 0) + rear ATs
+            for (const st of this.components.pkSwitchStackATs) {
+                count += 1 + st.front;
+                if (st.rear > 0) count += 1;
+                count += st.rear;
+            }
+            // Custom components: (full view + front ATs) per unit + optional (full rear + rear ATs) per unit
+            for (const cx of this.components.pkCustomComponents) {
+                count += cx.units * (1 + cx.frontATs);
+                if (cx.rearATs > 0) count += cx.units * (1 + cx.rearATs);
+            }
             count += this.components.pkAkPns;
             count += CONFIG.packoutAkbPhotos.length; // AKB always 3
         }
@@ -571,12 +608,24 @@ const SESSION = {
         this.mode = data.mode;
         this.partNumber = data.partNumber || '';
         this.serialNumber = data.serialNumber || '';
+        const incoming = data.components || {};
         this.components = {
             switches: 0, servers: 0, corningEdge: 0, cableLabels: 0, cableBend: 0,
-            pkServers: 0, pkServersPerGroupFront: 0, pkServersPerGroupRear: 0,
-            pkSwitches: 0, pkSwitchesPerStackFront: 0, pkSwitchesPerStackRear: 0, pkAkPns: 0,
-            ...(data.components || {})
+            pkServers: 0, pkSwitches: 0, pkAkPns: 0,
+            pkServerGroupATs: [], pkSwitchStackATs: [], pkCustomComponents: [],
+            ...incoming
         };
+        // Migrate legacy global-per-group AT keys (sessions saved before per-group UI)
+        if (!incoming.pkServerGroupATs && incoming.pkServers > 0) {
+            const f = incoming.pkServersPerGroupFront || 0;
+            const r = incoming.pkServersPerGroupRear  || 0;
+            this.components.pkServerGroupATs = Array.from({ length: incoming.pkServers }, () => ({ front: f, rear: r }));
+        }
+        if (!incoming.pkSwitchStackATs && incoming.pkSwitches > 0) {
+            const f = incoming.pkSwitchesPerStackFront || 0;
+            const r = incoming.pkSwitchesPerStackRear  || 0;
+            this.components.pkSwitchStackATs = Array.from({ length: incoming.pkSwitches }, () => ({ front: f, rear: r }));
+        }
         this.hasDoorBranding = data.hasDoorBranding || false;
         this.switchOrientations = data.switchOrientations || {};
         this.photoQueue = data.photoQueue || [];
@@ -597,12 +646,11 @@ const SESSION = {
             cableLabels: 0,
             cableBend: 0,
             pkServers: 0,
-            pkServersPerGroupFront: 0,
-            pkServersPerGroupRear: 0,
             pkSwitches: 0,
-            pkSwitchesPerStackFront: 0,
-            pkSwitchesPerStackRear: 0,
-            pkAkPns: 0
+            pkAkPns: 0,
+            pkServerGroupATs: [],
+            pkSwitchStackATs: [],
+            pkCustomComponents: []
         };
         this.hasDoorBranding = false;
         this.switchOrientations = {};
