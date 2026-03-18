@@ -3,6 +3,8 @@
  * Central configuration for photo sequences, templates, and component types
  */
 
+const APP_VERSION = 'V2.31.1';
+
 const CONFIG = {
     // Photo settings - single portrait mode, no cropping
     // Full camera resolution is captured; no forced aspect ratio
@@ -592,6 +594,32 @@ const SESSION = {
             }
             count += this.components.pkAkPns;
             count += CONFIG.packoutAkbPhotos.length; // AKB always 3
+
+            // Subtract photos from sections that are being skipped
+            if (this.startSection) {
+                const bySection = {};
+                for (const p of CONFIG.packoutDefaultPhotos) {
+                    bySection[p.section] = (bySection[p.section] || 0) + 1;
+                }
+                // skip before_bag
+                if (['assy_tag', 'bagged_rack', 'rack_in_carton'].includes(this.startSection)) {
+                    count -= bySection['before_bag'] || 0;
+                }
+                // skip assy_tag + accessory_kit
+                if (['bagged_rack', 'rack_in_carton'].includes(this.startSection)) {
+                    for (const g  of this.components.pkServerGroupATs)  { count -= 1 + g.front  + (g.rear  > 0 ? 1 + g.rear  : 0); }
+                    for (const st of this.components.pkSwitchStackATs)  { count -= 1 + st.front + (st.rear > 0 ? 1 + st.rear : 0); }
+                    for (const cx of this.components.pkCustomComponents) {
+                        count -= cx.units * (1 + cx.frontATs);
+                        if (cx.rearATs > 0) count -= cx.units * (1 + cx.rearATs);
+                    }
+                    count -= this.components.pkAkPns + CONFIG.packoutAkbPhotos.length;
+                }
+                // skip bagged_rack
+                if (this.startSection === 'rack_in_carton') {
+                    count -= bySection['bagged_rack'] || 0;
+                }
+            }
         }
 
         return count;

@@ -641,6 +641,7 @@
                     const nums = faiKeys.map(k => parseInt(k.replace('oracle-fai-v', ''), 10));
                     label = 'v2.' + Math.max(...nums);
                 }
+                label = typeof APP_VERSION !== 'undefined' ? APP_VERSION : label;
                 document.querySelectorAll('.sw-version').forEach(el => el.textContent = label);
             });
         }
