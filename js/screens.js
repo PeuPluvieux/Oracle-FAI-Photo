@@ -300,6 +300,11 @@ const Screens = {
         if (SESSION.mode === 'packout' && typeof App !== 'undefined') {
             App.checkSwitchOrientation();
         }
+
+        // Packout mid-session snapshot gates (Gate 2 and Gate 3)
+        if (SESSION.mode === 'packout' && typeof App !== 'undefined') {
+            App.checkSessionGates();
+        }
     },
 
     // Render template overlay (PNG guide image on top of camera)

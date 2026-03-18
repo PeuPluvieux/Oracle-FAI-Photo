@@ -499,6 +499,51 @@
         </div>
     </div>
 
+    <!-- Packout Pre-start Checklist Modal -->
+    <div id="packout-checklist-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+        <div class="bg-oracle-primary rounded-xl p-6 max-w-md w-full shadow-2xl">
+            <h3 class="text-xl font-bold mb-1 text-oracle-accent">Pre-Packout Checklist</h3>
+            <p class="text-gray-400 text-sm mb-4">Confirm all steps are complete before taking photos.</p>
+            <div class="space-y-3 mb-6">
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input id="chk-ppa" type="checkbox" class="w-5 h-5 accent-oracle-secondary cursor-pointer">
+                    <span class="text-gray-200 text-sm">PPA is finished</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input id="chk-snap1" type="checkbox" class="w-5 h-5 accent-oracle-secondary cursor-pointer">
+                    <span class="text-gray-200 text-sm">Snapshot Video 1 is finished and logged</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input id="chk-panels" type="checkbox" class="w-5 h-5 accent-oracle-secondary cursor-pointer">
+                    <span class="text-gray-200 text-sm">Rack side panels are attached / closed</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input id="chk-backdrop" type="checkbox" class="w-5 h-5 accent-oracle-secondary cursor-pointer">
+                    <span class="text-gray-200 text-sm">Carton backdrop is ready</span>
+                </label>
+            </div>
+            <button id="checklist-confirm-btn" disabled
+                class="w-full bg-oracle-secondary text-white font-semibold py-3 rounded-lg transition-all opacity-50 cursor-not-allowed">
+                Confirm &amp; Start
+            </button>
+        </div>
+    </div>
+
+    <!-- Packout Mid-session Snapshot Gate Modal (reused for Gate 2 and Gate 3) -->
+    <div id="snapshot-gate-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+        <div class="bg-oracle-primary rounded-xl p-6 max-w-sm w-full shadow-2xl text-center">
+            <div class="text-4xl mb-3">🎥</div>
+            <h3 id="snapshot-gate-title" class="text-lg font-bold mb-2 text-oracle-accent">Snapshot Video 2</h3>
+            <p id="snapshot-gate-body" class="text-gray-300 text-sm mb-6">
+                Confirm Snapshot Video 2 is finished and logged before continuing.
+            </p>
+            <button id="snapshot-gate-confirm-btn"
+                class="w-full bg-oracle-secondary hover:bg-oracle-accent text-white font-semibold py-3 rounded-lg transition-all">
+                Confirmed — Continue
+            </button>
+        </div>
+    </div>
+
     <!-- Error Modal -->
     <div id="error-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
         <div class="bg-oracle-primary rounded-xl p-6 max-w-md w-full shadow-2xl">

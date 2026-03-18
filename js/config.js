@@ -315,6 +315,10 @@ const SESSION = {
     // Packout options
     hasDoorBranding: false,
 
+    // Packout mid-session confirmation gates
+    checkpointBagging: false,   // true after user confirms Snapshot Video 2
+    checkpointCarton:  false,   // true after user confirms Snapshot Video 3
+
     // Switch stack orientations (keyed by stack number, set live via modal)
     switchOrientations: {},
 
@@ -596,6 +600,8 @@ const SESSION = {
             serialNumber: this.serialNumber,
             components: { ...this.components },
             hasDoorBranding: this.hasDoorBranding,
+            checkpointBagging: this.checkpointBagging,
+            checkpointCarton:  this.checkpointCarton,
             switchOrientations: { ...this.switchOrientations },
             photoQueue: this.photoQueue,
             currentPhotoIndex: this.currentPhotoIndex
@@ -626,7 +632,9 @@ const SESSION = {
             const r = incoming.pkSwitchesPerStackRear  || 0;
             this.components.pkSwitchStackATs = Array.from({ length: incoming.pkSwitches }, () => ({ front: f, rear: r }));
         }
-        this.hasDoorBranding = data.hasDoorBranding || false;
+        this.hasDoorBranding    = data.hasDoorBranding    || false;
+        this.checkpointBagging  = data.checkpointBagging  || false;
+        this.checkpointCarton   = data.checkpointCarton   || false;
         this.switchOrientations = data.switchOrientations || {};
         this.photoQueue = data.photoQueue || [];
         this.currentPhotoIndex = data.currentPhotoIndex || 0;
@@ -652,7 +660,9 @@ const SESSION = {
             pkSwitchStackATs: [],
             pkCustomComponents: []
         };
-        this.hasDoorBranding = false;
+        this.hasDoorBranding   = false;
+        this.checkpointBagging = false;
+        this.checkpointCarton  = false;
         this.switchOrientations = {};
         this.photoQueue = [];
         this.currentPhotoIndex = 0;

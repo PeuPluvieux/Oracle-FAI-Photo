@@ -149,7 +149,11 @@ const App = {
         });
 
         document.getElementById('info-continue-btn').addEventListener('click', () => {
-            this.startCameraSession();
+            if (SESSION.mode === 'packout') {
+                this._showPackoutChecklist();
+            } else {
+                this.startCameraSession();
+            }
         });
 
         // Component quantity input listeners (update photo count on change)
@@ -219,6 +223,26 @@ const App = {
             }
             document.getElementById('already-captured-banner').classList.add('hidden');
             Screens.updateCameraUI();
+        });
+
+        // Packout pre-start checklist — checkbox change → update confirm button state
+        ['chk-ppa', 'chk-snap1', 'chk-panels', 'chk-backdrop'].forEach(id => {
+            document.getElementById(id)?.addEventListener('change', () => this._updateChecklistBtn());
+        });
+
+        // Packout checklist confirm button
+        document.getElementById('checklist-confirm-btn')?.addEventListener('click', () => {
+            document.getElementById('packout-checklist-modal').classList.add('hidden');
+            this.startCameraSession();
+        });
+
+        // Packout snapshot gate confirm button
+        document.getElementById('snapshot-gate-confirm-btn')?.addEventListener('click', () => {
+            const photo = SESSION.getCurrentPhoto();
+            if (photo?.section === 'bagged_rack')    SESSION.checkpointBagging = true;
+            if (photo?.section === 'rack_in_carton') SESSION.checkpointCarton  = true;
+            Storage.saveSession(SESSION.toJSON());
+            document.getElementById('snapshot-gate-modal').classList.add('hidden');
         });
 
         // Switch stack orientation modal buttons
@@ -1083,6 +1107,51 @@ const App = {
             btn.textContent = 'Skip';
             btn.classList.remove('skip-btn-confirm');
             btn.classList.add('skip-btn-idle');
+        }
+    },
+
+    // ── Packout Pre-start Checklist ───────────────────────────────────────
+
+    _showPackoutChecklist() {
+        ['chk-ppa', 'chk-snap1', 'chk-panels', 'chk-backdrop'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.checked = false;
+        });
+        this._updateChecklistBtn();
+        document.getElementById('packout-checklist-modal').classList.remove('hidden');
+    },
+
+    _updateChecklistBtn() {
+        const allChecked = ['chk-ppa', 'chk-snap1', 'chk-panels', 'chk-backdrop']
+            .every(id => document.getElementById(id)?.checked);
+        const btn = document.getElementById('checklist-confirm-btn');
+        if (!btn) return;
+        btn.disabled = !allChecked;
+        btn.classList.toggle('opacity-50',       !allChecked);
+        btn.classList.toggle('cursor-not-allowed', !allChecked);
+        btn.classList.toggle('hover:bg-oracle-accent', allChecked);
+    },
+
+    // ── Packout Mid-session Snapshot Gates ───────────────────────────────
+
+    checkSessionGates() {
+        if (SESSION.mode !== 'packout') return;
+        const photo = SESSION.getCurrentPhoto();
+        if (!photo) return;
+
+        if (photo.section === 'bagged_rack' && !SESSION.checkpointBagging) {
+            document.getElementById('snapshot-gate-title').textContent = 'Snapshot Video 2';
+            document.getElementById('snapshot-gate-body').textContent =
+                'Confirm Snapshot Video 2 is finished and logged before continuing to plastic wrap photos.';
+            document.getElementById('snapshot-gate-modal').classList.remove('hidden');
+            return;
+        }
+        if (photo.section === 'rack_in_carton' && !SESSION.checkpointCarton) {
+            document.getElementById('snapshot-gate-title').textContent = 'Snapshot Video 3';
+            document.getElementById('snapshot-gate-body').textContent =
+                'Confirm Snapshot Video 3 is finished and logged before continuing to carton photos.';
+            document.getElementById('snapshot-gate-modal').classList.remove('hidden');
+            return;
         }
     },
 

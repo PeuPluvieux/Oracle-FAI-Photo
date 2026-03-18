@@ -27,79 +27,94 @@ Supports two modes: **Pretest FAI** and **Packout FAI**.
 - Template path: `Test Sample PRETEST v2/Template/`
 - Section pills: FRONT / REAR / SIDES / LABELS
 
-### Packout FAI (implemented across sessions)
+### Packout FAI
 
 #### Config (`js/config.js`)
 - `packoutTemplatePath: 'Test Sample Packout/Packout/Photo Template/'`
-- `packoutAkbPhotos`: fixed set of 3 portrait photos (AKB1.png, AKB2.png, AKB3.png) — always taken
-- `packoutDefaultPhotos`: 36 real entries replacing old PK_* placeholders:
-  - AFR1-3, ARR1-3 (open rack front/rear)
-  - SN, FRAT (serial number + rack assy tag)
-  - PDU1-6, PDUAT1-2 (PDU photos + assy tags)
-  - BFR1, BFR3, BFRT, BRR2 (bagged rack)
-  - CFR1-2, CFRTT, CRR1-3, CRS1/3/TT, CLS1 (crated rack)
-  - CSN, CCI, LB1-4 (crate labels/info)
-- `SESSION.components` split keys:
-  - `pkServers`, `pkServersPerGroupFront`, `pkServersPerGroupRear`
-  - `pkSwitches`, `pkSwitchesPerStackFront`, `pkSwitchesPerStackRear`
-  - `pkAkPns`
+- `packoutAkbPhotos`: fixed set of 3 portrait photos (AKB1–3) — always taken
+- `packoutDefaultPhotos`: 36 entries — AFR1-3, ARR1-3, SN, FRAT, PDU1-6, PDUAT1-2, BFRT/BFR1/BFR3/BRR2, CFR1-2/CFRTT, CRR1-3, CRS1/3/TT, CLS1, CSN, CCI, LB1-4
+- `SESSION.components` arrays:
+  - `pkServerGroupATs: [{ front: N, rear: N }, ...]` — one object per server group
+  - `pkSwitchStackATs: [{ front: N, rear: N }, ...]` — one object per switch stack
+  - `pkCustomComponents: [{ name, units, frontATs, rearATs }, ...]`
+  - `pkAkPns` — count of accessory kit PN photos
 - `_buildPackoutQueue()` — front-first ordering:
-  1. All server groups: `SV{g}` full view → `SV{g}AT{s}` front ATs
-  2. All switch stacks: `SW{st}` full view → `SW{st}AT{sw}` front ATs
-  3. All server groups: `BSV{g}F` full rear view → `BSV{g}AT{s}` rear ATs
-  4. All switch stacks: `BSW{st}AT{sw}` rear ATs
-  5. AK PNs → AKB photos (always 3)
-- `calculateTotalPhotos()` uses all split keys
-- `setStackOrientation()` regex: `/^(BSW|SW)(\d+)/` (covers both full views and ATs)
-- `fromJSON()` and `reset()` include all new split keys
+  1. Open rack fronts (AFR1-3)
+  2. All server groups: `SV{g}` full view → `SV{g}AT{s}` front ATs
+  3. All switch stacks: `SW{st}` full view → `SW{st}AT{sw}` front ATs
+  4. Custom components: `CC{cx}U{u}` full view → `CC{cx}U{u}AT{s}` front ATs
+  5. Open rack rears (ARR1-3)
+  6. All server groups: `BSV{g}` full rear → `BSV{g}AT{s}` rear ATs
+  7. All switch stacks: `BSW{st}` full rear → `BSW{st}AT{sw}` rear ATs
+  8. Custom component rears: `BCC{cx}U{u}` full rear → `BCC{cx}U{u}AT{s}` rear ATs
+  9. PDUs → pre-bag labels (SN, FRAT, LB1-4)
+  10. AK PN photos → AKB1-3
+  11. Bagged rack (BFRT, BFR1, BFR3, BRR2)
+  12. Crated rack (CFR1-2, CFRTT, CRR1-3, CRS1/3/TT, CLS1, CSN, CCI)
+- `calculateTotalPhotos()` correctly counts per-group/per-stack AT arrays + custom components
+- `setStackOrientation()` regex: `/^(BSW|SW)(\d+)/`
+- `fromJSON()` includes legacy migration from old global `pkServersPerGroupFront/Rear` keys
+- `reset()` and `toJSON()` include all split keys + checkpoint flags
+
+#### Checkpoint Gates (`SESSION` + `js/app.js`)
+- `SESSION.checkpointBagging` — set `true` after user confirms Gate 2
+- `SESSION.checkpointCarton` — set `true` after user confirms Gate 3
+- **Gate 1 — Pre-start checklist** (`_showPackoutChecklist()`): shown before camera session begins; user must check all items before proceeding; confirm button disabled until all boxes checked
+- **Gate 2 — Snapshot Video 2** (`checkSessionGates()`): fires when advancing to first `bagged_rack` photo; modal requires confirmation that Snapshot Video 2 is logged before plastic-wrap photos are unlocked
+- **Gate 3 — Snapshot Video 3** (`checkSessionGates()`): fires when advancing to first `rack_in_carton` photo; modal requires confirmation that Snapshot Video 3 is logged before carton photos are unlocked
+- Gates are persisted in `SESSION.toJSON()` / `fromJSON()` so they survive reload
+
+#### Additional Packout Features
+- **Already-captured banner**: `#already-captured-banner` shown when navigating to a photo slot that already has a capture; hidden on advance/retake
+- **Save Now button**: `#save-now-btn` triggers `App.saveNow()` — forces an immediate IndexedDB flush and gives visual feedback
+- **IndexedDB error toasts**: `App.showToast(message, type)` renders a fixed bottom toast (5 s) for storage errors and info messages
+- **Switch orientation modal**: `#switch-orient-modal` prompts portrait/landscape when entering the first photo of each stack; applies via `SESSION.setStackOrientation()`
 
 #### UI (`index.html`)
 - Door branding checkbox **removed** from `#packout-options`
-- Old single inputs replaced with split pairs:
-  - `qty-pk-servers-per-group-front` / `qty-pk-servers-per-group-rear`
-  - `qty-pk-switches-per-stack-front` / `qty-pk-switches-per-stack-rear`
-- `#switch-orient-modal` overlay added inside `#camera-viewport` (z-30)
-  - Portrait / Landscape buttons
-  - `#switch-orient-title` updated per stack number
+- Per-group/per-stack AT inputs rendered dynamically (not static split pairs)
+- `#packout-checklist-modal` — Gate 1 overlay
+- `#snapshot-gate-modal` with `#snapshot-gate-title` / `#snapshot-gate-body` — Gate 2 & 3 overlay
+- `#switch-orient-modal` inside `#camera-viewport` (z-30) with portrait/landscape buttons
 
 #### Screens (`js/screens.js`)
-- `packoutComponentInputs` map uses all 7 new split keys
+- `packoutComponentInputs` map uses all per-group array keys
 - `_initSectionPills()`: packout → BEFORE / AFTER / LABELS / PARTS
 - `_sectionForLocation(photo)`: uses `photo.section` for packout, `photo.location` for pretest
 - `renderTemplateOverlay()`: routes to `packoutTemplatePath` when `SESSION.mode === 'packout'`
-- `updateCameraUI()`: calls `App.checkSwitchOrientation()` when in packout mode
+- `updateCameraUI()`: calls `App.checkSwitchOrientation()` and `App.checkSessionGates()` when in packout mode
 
 #### App (`js/app.js`)
 - Switch orientation modal button listeners wired
 - `checkSwitchOrientation()`: triggers on `/^SW(\d+)$/` (first photo of each stack = full view)
 - `confirmSwitchOrientation(orientation)`: applies orientation and re-renders
 - `SESSION.switchOrientations = {}` reset on fresh `startCameraSession()`
-- `_pendingStackNum` property tracks which stack is awaiting orientation choice
+- `_pendingStackNum` tracks which stack is awaiting orientation choice
 
-### Bug Fixes (v18 — 2026-03-17)
+### Bug Fixes (v18–v28 sprint)
 
 #### Config (`js/config.js`)
-- **BSV pretest orientation**: all 3 back-server angles (BSV F/L/R) changed `'landscape'` → `'portrait'` (templates are actually portrait)
-- **BSV packout orientation**: `BSV{g}F` and `BSV{g}AT{s}` in `_buildPackoutQueue()` changed `'landscape'` → `'portrait'`
-- **Export quality**: added `exportQuality: 0.72` to `CONFIG.photo` — used for ZIP re-encoding to reduce file size
-- **Photo filenames**: `generateFilename()` simplified to always return `{ID}.jpg` (PN/SN already appear in ZIP filename)
+- **BSV pretest orientation**: BSV F/L/R changed `'landscape'` → `'portrait'`
+- **BSV packout orientation**: `BSV{g}F` and `BSV{g}AT{s}` changed `'landscape'` → `'portrait'`
+- **Export quality**: `exportQuality: 0.85`, `maxExportDimension: 2400`
+- **Photo filenames**: `generateFilename()` returns `{ID}.jpg` (PN/SN in ZIP filename)
 
 #### CSS (`css/styles.css`)
-- **Landscape template fill**: added `#template-overlay img.template-rotated` rule that sets `width: calc(100% * 4/3)` / `height: calc(100% * 3/4)` before the 90° rotation, so the image fills the full 3:4 viewport instead of rendering smaller
+- **Landscape template fill**: `#template-overlay img.template-rotated` sets `width: calc(100% * 4/3)` / `height: calc(100% * 3/4)` before 90° rotation so it fills the full 3:4 viewport
 
 #### Screens (`js/screens.js`)
-- **`renderTemplateOverlay()`**: for landscape photos, removes `w-full h-full` Tailwind classes before adding `template-rotated` (the CSS rule above handles sizing)
+- **`renderTemplateOverlay()`**: for landscape photos, removes `w-full h-full` before adding `template-rotated`
 
 #### Export (`js/export.js`)
-- **`reencodeForExport()`**: new helper that re-encodes a portrait photo at `exportQuality` via canvas; used in `buildZip()` instead of raw `dataUrlToBlob()` to significantly reduce ZIP file size
-- **`rotateImageToLandscape()`**: switched from `CONFIG.photo.quality` → `CONFIG.photo.exportQuality`
-- **`downloadZip()`**: PWA-safe — tries `navigator.share({ files })` first (iOS Add-to-Home-Screen requires this); falls back to `<a>.click()` for desktop/non-PWA
+- **`reencodeForExport()`**: re-encodes portrait photos at `exportQuality` via canvas before zipping
+- **`rotateImageToLandscape()`**: uses `CONFIG.photo.exportQuality`
+- **`downloadZip()`**: tries `navigator.share({ files })` first (iOS PWA), falls back to `<a>.click()`
 
 #### App (`js/app.js`)
-- **`startNewSession()`**: now calls `Camera.stop()` + `this.releaseWakeLock()` before resetting, preventing iOS camera stream conflicts when starting a new inspection mid-session
+- **`startNewSession()`**: calls `Camera.stop()` + `this.releaseWakeLock()` before resetting to prevent iOS camera stream conflicts
 
-#### SW (`sw.js`)
-- Bumped `CACHE_VERSION` from `v17` → `v18`
+### Current SW Version
+`CACHE_VERSION = 'v28'` in `sw.js`
 
 ---
 
