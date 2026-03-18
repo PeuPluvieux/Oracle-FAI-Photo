@@ -396,62 +396,61 @@ const SESSION = {
 
     // Build Packout photo queue
     _buildPackoutQueue() {
-        // === 1. RACK: open rack photos (before bagging) ===
-        for (const photo of CONFIG.packoutDefaultPhotos.filter(p => p.section === 'before_bag')) {
-            this._addPhoto(photo);
-        }
+        const po = id => CONFIG.packoutDefaultPhotos.find(p => p.id === id);
 
-        // === 2. AK BOX: server/switch assy tags + AK PNs + AKB boxes ===
-        // Server group front views + front assy tags
+        // === 1. Open rack FRONT ===
+        ['AFR1', 'AFR2', 'AFR3'].forEach(id => this._addPhoto(po(id)));
+
+        // === 2. Component FRONTS ===
         for (let g = 1; g <= this.components.pkServers; g++) {
             this._addPhoto({ id: `SV${g}`, name: `Server Group ${g} - Full View`, orientation: 'landscape', section: 'assy_tag', location: 'front', template: 'SV.png' });
             for (let s = 1; s <= this.components.pkServersPerGroupFront; s++) {
                 this._addPhoto({ id: `SV${g}AT${s}`, name: `Server Group ${g} - Assy Tag ${s} Front`, orientation: 'landscape', section: 'assy_tag', location: 'front', template: 'SV AT.png' });
             }
         }
-        // Switch stack full views + front assy tags
         for (let st = 1; st <= this.components.pkSwitches; st++) {
             this._addPhoto({ id: `SW${st}`, name: `Switch Stack ${st} - Full View`, orientation: 'landscape', section: 'assy_tag', location: 'front', template: 'SW.png' });
             for (let sw = 1; sw <= this.components.pkSwitchesPerStackFront; sw++) {
                 this._addPhoto({ id: `SW${st}AT${sw}`, name: `Switch Stack ${st} - Assy Tag ${sw} Front`, orientation: 'landscape', section: 'assy_tag', location: 'front', template: 'SW AT.png' });
             }
         }
-        // Server group rear views + rear assy tags
+
+        // === 3. Open rack REAR ===
+        ['ARR1', 'ARR2', 'ARR3'].forEach(id => this._addPhoto(po(id)));
+
+        // === 4. Component REARS ===
         for (let g = 1; g <= this.components.pkServers; g++) {
-            this._addPhoto({ id: `BSV${g}F`, name: `Server Group ${g} - Full Rear View`, orientation: 'landscape', section: 'assy_tag', location: 'rear', template: 'BSV F.png' });
+            this._addPhoto({ id: `BSV${g}F`, name: `Server Group ${g} - Full Rear View`, orientation: 'portrait', section: 'assy_tag', location: 'rear', template: 'BSV F.png' });
             for (let s = 1; s <= this.components.pkServersPerGroupRear; s++) {
-                this._addPhoto({ id: `BSV${g}AT${s}`, name: `Server Group ${g} - Assy Tag ${s} Rear`, orientation: 'landscape', section: 'assy_tag', location: 'rear', template: 'BSV AT.png' });
+                this._addPhoto({ id: `BSV${g}AT${s}`, name: `Server Group ${g} - Assy Tag ${s} Rear`, orientation: 'portrait', section: 'assy_tag', location: 'rear', template: 'BSV AT.png' });
             }
         }
-        // Switch stack rear assy tags
         for (let st = 1; st <= this.components.pkSwitches; st++) {
             for (let sw = 1; sw <= this.components.pkSwitchesPerStackRear; sw++) {
                 this._addPhoto({ id: `BSW${st}AT${sw}`, name: `Switch Stack ${st} - Assy Tag ${sw} Rear`, orientation: 'landscape', section: 'assy_tag', location: 'rear', template: 'BSW AT.png' });
             }
         }
-        // AK PNs (bubble mailers)
+
+        // === 5. PDUs ===
+        ['PDU1', 'PDU2', 'PDU3', 'PDU4', 'PDU5', 'PDU6', 'PDUAT1', 'PDUAT2'].forEach(id => this._addPhoto(po(id)));
+
+        // === 6. Pre-bag labels ===
+        ['SN', 'FRAT', 'LB1', 'LB2', 'LB3', 'LB4'].forEach(id => this._addPhoto(po(id)));
+
+        // === 7. Accessory kits ===
         for (let n = 1; n <= this.components.pkAkPns; n++) {
             this._addPhoto({ id: `AK${n}`, name: `Accessory Kit PN ${n}`, orientation: 'landscape', section: 'accessory_kit', location: 'accessory_kit', template: 'AK.png' });
         }
-        // AKB boxes (fixed set of 3, always taken)
-        for (const photo of CONFIG.packoutAkbPhotos) {
-            this._addPhoto(photo);
-        }
+        for (const photo of CONFIG.packoutAkbPhotos) this._addPhoto(photo);
 
-        // === 3. PLASTIC: bagged rack (shrink-wrapped) ===
-        for (const photo of CONFIG.packoutDefaultPhotos.filter(p => p.section === 'bagged_rack')) {
-            this._addPhoto(photo);
-        }
+        // === 8–9. Bagged rack (front then rear) ===
+        ['BFRT', 'BFR1', 'BFR3', 'BRR2'].forEach(id => this._addPhoto(po(id)));
 
-        // === 4. CARTON: crated rack + labels ===
-        for (const photo of CONFIG.packoutDefaultPhotos.filter(p => p.section === 'rack_in_carton')) {
-            this._addPhoto(photo);
-        }
+        // === 10–13. Crated rack ===
+        ['CFR1', 'CFR2', 'CFRTT', 'CRR1', 'CRR2', 'CRR3', 'CRS1', 'CRS3', 'CRSTT', 'CLS1', 'CSN', 'CCI'].forEach(id => this._addPhoto(po(id)));
 
         if (this.hasDoorBranding) {
-            for (const photo of CONFIG.packoutDoorBranding) {
-                this._addPhoto(photo);
-            }
+            for (const photo of CONFIG.packoutDoorBranding) this._addPhoto(photo);
         }
     },
 

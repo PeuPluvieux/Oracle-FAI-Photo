@@ -103,6 +103,60 @@ Supports two modes: **Pretest FAI** and **Packout FAI**.
 
 ---
 
+## Workflow Orchestration
+
+### 1. Plan Mode Default
+- Enter plan mode for ANY non-trivial task (3+ steps or architectural decisions)
+- If something goes sideways mid-task, STOP and re-plan before continuing
+- Use plan mode for verification steps, not just building
+- Write detailed specs upfront to reduce ambiguity
+
+### 2. Subagent Strategy
+- Use subagents to keep the main context window clean
+- Offload file exploration, research, and parallel analysis to subagents
+- For complex problems, use multiple focused subagents — one task per agent
+- Prefer the Explore subagent for codebase searches; Plan subagent for architecture decisions
+
+### 3. Self-Improvement Loop
+- After ANY correction from the user: capture the pattern in memory (auto-memory system)
+- Write rules that prevent the same mistake from recurring
+- Review relevant memories at the start of each session
+
+### 4. Verification Before Done
+- Never consider a task complete without proving it works
+- For export/ZIP changes: verify with actual photo count and file size
+- For SW changes: confirm cache version bumped and hard-refresh performed
+- Ask: "Would this pass a real FAI session without the user noticing any regression?"
+
+### 5. Demand Elegance (Balanced)
+- For non-trivial changes: pause and ask "is there a more elegant way?"
+- If a fix feels hacky: step back and implement the clean solution
+- Skip this for simple, obvious fixes — don't over-engineer a one-liner
+- This is a lean PWA; keep helpers minimal and co-located with their use
+
+### 6. Autonomous Bug Fixing
+- When given a bug report: fix it. Don't ask for hand-holding.
+- Check SW cache first (see Debugging Gotchas) before assuming logic is broken
+- Diagnose from logs, errors, and observed behavior — then resolve
+- Do not ask the user to reproduce steps you can reason about from the code
+
+## Task Management
+
+1. **Plan First** — outline the approach before touching any file
+2. **Verify Plan** — check in on approach for anything architectural or risky
+3. **Track Progress** — note which files changed and why at each step
+4. **Explain Changes** — high-level summary at natural milestones (not after every line)
+5. **Capture Lessons** — update memory after any user correction
+
+## Core Principles
+
+- **Simplicity First** — make every change as small as possible; minimal code impact
+- **No Laziness** — find root causes; no temporary hacks; senior developer standards
+- **Minimal Footprint** — only touch what's necessary; never introduce side-effect bugs
+- **PWA Discipline** — every JS/CSS/HTML change requires a SW version bump and hard-refresh verification
+
+---
+
 ## Pending / Known TODOs
 - General/default packout photos sequence may change — user said guidelines will be updated
 - `hasDoorBranding` JS logic still exists but UI is removed and it defaults to `false`
