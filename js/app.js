@@ -195,6 +195,20 @@ const App = {
             }
         });
 
+        // Start-From section selector buttons
+        document.querySelectorAll('.start-section-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.start-section-btn').forEach(b => {
+                    b.classList.remove('active-section-btn', 'bg-oracle-accent', 'border-oracle-accent', 'text-white');
+                    b.classList.add('bg-gray-700', 'border-gray-600', 'text-gray-300');
+                });
+                btn.classList.add('active-section-btn', 'bg-oracle-accent', 'border-oracle-accent', 'text-white');
+                btn.classList.remove('bg-gray-700', 'border-gray-600', 'text-gray-300');
+                SESSION.startSection = btn.dataset.startSection || null;
+                Screens.updatePhotoCount();
+            });
+        });
+
         // Add custom component button
         const addCustomBtn = document.getElementById('add-custom-component');
         if (addCustomBtn) {
@@ -1118,6 +1132,11 @@ const App = {
     // ── Packout Pre-start Checklist ───────────────────────────────────────
 
     _showPackoutChecklist() {
+        // Skip checklist when resuming from a mid-session section
+        if (SESSION.startSection) {
+            this.startCameraSession();
+            return;
+        }
         ['chk-ppa', 'chk-snap1', 'chk-panels', 'chk-backdrop'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.checked = false;

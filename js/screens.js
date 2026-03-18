@@ -61,6 +61,19 @@ const Screens = {
         const doorBranding = document.getElementById('door-branding');
         if (doorBranding) doorBranding.checked = false;
 
+        // Reset start-section selector to "Full Session"
+        SESSION.startSection = null;
+        document.querySelectorAll('.start-section-btn').forEach(btn => {
+            const isDefault = !btn.dataset.startSection;
+            btn.classList.toggle('active-section-btn', isDefault);
+            btn.classList.toggle('bg-oracle-accent',     isDefault);
+            btn.classList.toggle('border-oracle-accent', isDefault);
+            btn.classList.toggle('text-white',           isDefault);
+            btn.classList.toggle('bg-gray-700',          !isDefault);
+            btn.classList.toggle('border-gray-600',      !isDefault);
+            btn.classList.toggle('text-gray-300',        !isDefault);
+        });
+
         // Hide AT sub-options until a group/stack count is selected
         document.getElementById('pk-server-at-options').classList.add('hidden');
         document.getElementById('pk-switch-at-options').classList.add('hidden');

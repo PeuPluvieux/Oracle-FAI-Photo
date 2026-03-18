@@ -315,6 +315,9 @@ const SESSION = {
     // Packout options
     hasDoorBranding: false,
 
+    // Packout start section (null = full session, or 'assy_tag'/'bagged_rack'/'rack_in_carton')
+    startSection: null,
+
     // Packout mid-session confirmation gates
     checkpointBagging: false,   // true after user confirms Snapshot Video 2
     checkpointCarton:  false,   // true after user confirms Snapshot Video 3
@@ -481,6 +484,19 @@ const SESSION = {
 
         if (this.hasDoorBranding)
             for (const photo of CONFIG.packoutDoorBranding) this._addPhoto(photo);
+
+        // Trim queue to the chosen start section
+        if (this.startSection) {
+            const idx = this.photoQueue.findIndex(p => p.section === this.startSection);
+            if (idx > 0) this.photoQueue = this.photoQueue.slice(idx);
+            // Pre-confirm checkpoints for sections that are being skipped
+            if (this.startSection === 'bagged_rack' || this.startSection === 'rack_in_carton') {
+                this.checkpointBagging = true;
+            }
+            if (this.startSection === 'rack_in_carton') {
+                this.checkpointCarton = true;
+            }
+        }
     },
 
     // Add array of photos to queue
@@ -600,6 +616,7 @@ const SESSION = {
             serialNumber: this.serialNumber,
             components: { ...this.components },
             hasDoorBranding: this.hasDoorBranding,
+            startSection: this.startSection,
             checkpointBagging: this.checkpointBagging,
             checkpointCarton:  this.checkpointCarton,
             switchOrientations: { ...this.switchOrientations },
@@ -633,6 +650,7 @@ const SESSION = {
             this.components.pkSwitchStackATs = Array.from({ length: incoming.pkSwitches }, () => ({ front: f, rear: r }));
         }
         this.hasDoorBranding    = data.hasDoorBranding    || false;
+        this.startSection       = data.startSection       || null;
         this.checkpointBagging  = data.checkpointBagging  || false;
         this.checkpointCarton   = data.checkpointCarton   || false;
         this.switchOrientations = data.switchOrientations || {};
@@ -661,6 +679,7 @@ const SESSION = {
             pkCustomComponents: []
         };
         this.hasDoorBranding   = false;
+        this.startSection      = null;
         this.checkpointBagging = false;
         this.checkpointCarton  = false;
         this.switchOrientations = {};
