@@ -108,6 +108,11 @@ const App = {
 
     // Setup all event listeners
     setupEventListeners() {
+        // Select-all on focus for all number inputs (static + dynamic)
+        document.addEventListener('focusin', e => {
+            if (e.target.matches('input[type="number"]')) e.target.select();
+        });
+
         // Login screen
         document.getElementById('login-btn').addEventListener('click', () => {
             this.handleLogin();
