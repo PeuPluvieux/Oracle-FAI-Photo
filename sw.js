@@ -4,7 +4,7 @@
  * Strategy: cache-first for static assets, network-first for CDN with cache fallback.
  */
 
-const CACHE_VERSION = 'v32';
+const CACHE_VERSION = 'v33';
 const CACHE_NAME = `oracle-fai-${CACHE_VERSION}`;
 
 // All local static assets
@@ -20,7 +20,10 @@ const STATIC_ASSETS = [
     './js/capture.js',
     './js/export.js',
     './js/screens.js',
-    './js/app.js'
+    './js/app.js',
+    './vendor/tailwind.js',
+    './vendor/jszip.min.js',
+    './vendor/zxing.min.js'
 ];
 
 // Template PNG files (spaces encoded for URL matching)
@@ -40,13 +43,6 @@ const TEMPLATE_FILES = [
     'SV%20B.png', 'SV%20F.png', 'SV%20L.png', 'SV%20R.png',
     'SW%20B.png', 'SW%20T.png'
 ].map(f => TEMPLATE_BASE + f);
-
-// CDN resources - try to cache on first fetch
-const CDN_URLS = [
-    'https://cdn.tailwindcss.com',
-    'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
-    'https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js'
-];
 
 // Packout template PNG files
 const PACKOUT_TEMPLATE_BASE = './Test%20Sample%20Packout/Packout/Photo%20Template/';
@@ -71,6 +67,7 @@ const PACKOUT_TEMPLATE_FILES = [
 ].map(f => PACKOUT_TEMPLATE_BASE + f);
 
 const ALL_ASSETS = [...STATIC_ASSETS, ...TEMPLATE_FILES, ...PACKOUT_TEMPLATE_FILES];
+
 
 // ── Install: cache all local assets ────────────────────────────────────────
 self.addEventListener('install', event => {
@@ -100,40 +97,21 @@ self.addEventListener('activate', event => {
     );
 });
 
-// ── Fetch: serve from cache, update in background ──────────────────────────
+// ── Fetch: cache-first for all local assets ────────────────────────────────
 self.addEventListener('fetch', event => {
     if (event.request.method !== 'GET') return;
 
-    const url = event.request.url;
-    const isCDN = CDN_URLS.some(cdn => url.startsWith(cdn));
+    event.respondWith(
+        caches.match(event.request).then(cached => {
+            const networkFetch = fetch(event.request).then(response => {
+                if (response.ok) {
+                    const clone = response.clone();
+                    caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
+                }
+                return response;
+            }).catch(() => null);
 
-    if (isCDN) {
-        // Network-first for CDN: fresh if online, cached fallback if offline
-        event.respondWith(
-            fetch(event.request)
-                .then(response => {
-                    if (response.ok) {
-                        const clone = response.clone();
-                        caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
-                    }
-                    return response;
-                })
-                .catch(() => caches.match(event.request))
-        );
-    } else {
-        // Cache-first for local assets: serve cache, refresh in background
-        event.respondWith(
-            caches.match(event.request).then(cached => {
-                const networkFetch = fetch(event.request).then(response => {
-                    if (response.ok) {
-                        const clone = response.clone();
-                        caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
-                    }
-                    return response;
-                }).catch(() => null);
-
-                return cached || networkFetch.then(r => r || caches.match('./index.html'));
-            })
-        );
-    }
+            return cached || networkFetch.then(r => r || caches.match('./index.html'));
+        })
+    );
 });

@@ -3,6 +3,11 @@
  * Handles screen transitions, UI state, and template overlays
  */
 
+// Sanitize user text input: allow only safe characters, cap length
+function sanitizeInput(str, maxLen = 50) {
+    return String(str).replace(/[^A-Za-z0-9 ._\-]/g, '').slice(0, maxLen);
+}
+
 const Screens = {
     currentScreen: 'landing',
 
@@ -145,8 +150,8 @@ const Screens = {
     // Get form values from info screen
     getInfoFormValues() {
         const values = {
-            partNumber: document.getElementById('part-number').value.trim(),
-            serialNumber: document.getElementById('serial-number').value.trim(),
+            partNumber:   sanitizeInput(document.getElementById('part-number').value.trim()),
+            serialNumber: sanitizeInput(document.getElementById('serial-number').value.trim()),
             components: {},
             hasDoorBranding: false
         };

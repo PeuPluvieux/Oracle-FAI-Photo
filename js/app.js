@@ -31,8 +31,16 @@ const App = {
         console.log('Oracle FAI Photos - Ready');
     },
 
-    // Hardcoded credentials
-    credentials: { username: 'admin', password: 'mitacqad123' },
+    // Auth — PBKDF2(SHA-256, 100k iterations) of the login password
+    // To change the password: run scripts/hash-password.js and paste new values here
+    _auth: {
+        username:   'admin',
+        saltHex:    '11142069afa31d6ff23bb597b52383a5',
+        hashHex:    'ac87d9cd3ea3322d4014aeef96981ca847d87c42caa5dad968d6ca0bf32570f2',
+        iterations: 100000
+    },
+    _loginFailures:    0,
+    _loginLockedUntil: null,
 
     // Check for a previously saved session and prompt to resume
     async checkForResume() {
@@ -129,6 +137,12 @@ const App = {
         // Landing screen
         document.getElementById('start-btn').addEventListener('click', () => {
             Screens.show('mode');
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            SESSION.reset();
+            await Storage.clearAll();
+            Screens.show('login');
         });
 
         // Mode selection screen
@@ -464,16 +478,57 @@ const App = {
         });
     },
 
-    // Handle login
-    handleLogin() {
-        const username = document.getElementById('login-username').value.trim();
-        const password = document.getElementById('login-password').value;
+    // Derive PBKDF2 hash from a plaintext password + hex salt
+    async _hashPassword(password, saltHex, iterations) {
+        const encoder = new TextEncoder();
+        const keyMaterial = await crypto.subtle.importKey(
+            'raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits']
+        );
+        const saltBytes = new Uint8Array(saltHex.match(/../g).map(h => parseInt(h, 16)));
+        const bits = await crypto.subtle.deriveBits(
+            { name: 'PBKDF2', salt: saltBytes, iterations, hash: 'SHA-256' },
+            keyMaterial, 256
+        );
+        return Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2, '0')).join('');
+    },
+
+    // Escape HTML special characters before inserting user content into innerHTML
+    _escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    },
+
+    // Handle login — async PBKDF2 comparison with rate limiting
+    async handleLogin() {
         const errorEl = document.getElementById('login-error');
 
-        if (username === this.credentials.username && password === this.credentials.password) {
+        // Rate limiting: block if locked out
+        if (this._loginLockedUntil && Date.now() < this._loginLockedUntil) {
+            const secs = Math.ceil((this._loginLockedUntil - Date.now()) / 1000);
+            errorEl.textContent = `Too many attempts. Try again in ${secs}s.`;
+            errorEl.classList.remove('hidden');
+            return;
+        }
+
+        const username = document.getElementById('login-username').value.trim();
+        const password = document.getElementById('login-password').value;
+
+        const derived = await this._hashPassword(password, this._auth.saltHex, this._auth.iterations);
+        if (username === this._auth.username && derived === this._auth.hashHex) {
+            this._loginFailures = 0;
             errorEl.classList.add('hidden');
             Screens.show('landing');
         } else {
+            this._loginFailures++;
+            if (this._loginFailures >= 5) {
+                this._loginLockedUntil = Date.now() + 30_000;
+                this._loginFailures = 0;
+            }
+            errorEl.textContent = 'Invalid username or password.';
             errorEl.classList.remove('hidden');
         }
     },
@@ -845,7 +900,7 @@ const App = {
         container.innerHTML = this._customComponentValues.map((comp, c) => `
             <div class="p-2 bg-gray-700 rounded-lg space-y-2 border border-gray-600">
                 <div class="flex items-center gap-2">
-                    <input type="text" placeholder="Component name (e.g. Storage Array)" value="${comp.name}"
+                    <input type="text" placeholder="Component name (e.g. Storage Array)" value="${this._escapeHtml(comp.name)}"
                         class="flex-1 min-w-0 px-2 py-1 rounded bg-gray-600 border border-gray-500 text-white text-xs focus:outline-none focus:border-oracle-accent"
                         data-custom="${c}" data-field="name">
                     <button class="remove-custom-btn text-red-400 hover:text-red-300 text-sm font-bold px-1 shrink-0" data-custom="${c}">✕</button>
@@ -867,7 +922,7 @@ const App = {
             </div>`).join('');
         container.querySelectorAll('input[data-field="name"]').forEach(input => {
             input.addEventListener('input', () => {
-                this._customComponentValues[parseInt(input.dataset.custom)].name = input.value;
+                this._customComponentValues[parseInt(input.dataset.custom)].name = input.value.replace(/[^A-Za-z0-9 ._\-]/g, '').slice(0, 50);
             });
         });
         container.querySelectorAll('input[data-field="units"], input[data-field="frontATs"], input[data-field="rearATs"]').forEach(input => {
