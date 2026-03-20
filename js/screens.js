@@ -202,7 +202,7 @@ const Screens = {
         if (!photo) return null;
         if (SESSION.mode === 'packout') {
             const sec = photo.section;
-            if (sec === 'assy_tag' || sec === 'accessory_kit') return 'front';  // AK BOX pill
+            if (sec === 'accessory_kit') return 'front';  // AK BOX pill
             if (sec === 'before_bag')                          return 'rear';   // RACK pill
             if (sec === 'bagged_rack')                         return 'sides';   // PLASTIC pill
             if (sec === 'rack_in_carton')                      return 'labels';  // CARTON pill

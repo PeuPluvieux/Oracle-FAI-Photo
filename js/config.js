@@ -3,7 +3,7 @@
  * Central configuration for photo sequences, templates, and component types
  */
 
-const APP_VERSION = 'V2.34.0';
+const APP_VERSION = 'V2.35.0';
 
 const CONFIG = {
     // Photo settings - single portrait mode, no cropping
@@ -406,82 +406,82 @@ const SESSION = {
     _buildPackoutQueue() {
         const po = id => CONFIG.packoutDefaultPhotos.find(p => p.id === id);
 
-        // === 1. Component FRONTS — servers ===
-        this.components.pkServerGroupATs.forEach(({ front }, i) => {
-            const g = i + 1;
-            this._addPhoto({ id: `SV${g}`, name: `Server Group ${g} - Full View`, orientation: 'landscape', section: 'assy_tag', location: 'front', template: 'SV.png' });
-            for (let s = 1; s <= front; s++)
-                this._addPhoto({ id: `SV${g}AT${s}`, name: `Server Group ${g} - Assy Tag ${s} Front`, orientation: 'landscape', section: 'assy_tag', location: 'front', template: 'SV AT.png' });
-        });
-
-        // === 1b. Component FRONTS — switches ===
-        this.components.pkSwitchStackATs.forEach(({ front }, i) => {
-            const st = i + 1;
-            this._addPhoto({ id: `SW${st}`, name: `Switch Stack ${st} - Full View`, orientation: 'landscape', section: 'assy_tag', location: 'front', template: 'SW.png' });
-            for (let sw = 1; sw <= front; sw++)
-                this._addPhoto({ id: `SW${st}AT${sw}`, name: `Switch Stack ${st} - Assy Tag ${sw} Front`, orientation: 'landscape', section: 'assy_tag', location: 'front', template: 'SW AT.png' });
-        });
-
-        // === 1c. Component FRONTS — custom components ===
-        this.components.pkCustomComponents.forEach(({ name, units, frontATs }, c) => {
-            const cx = c + 1;
-            for (let u = 1; u <= units; u++) {
-                this._addPhoto({ id: `CC${cx}U${u}`, name: `${name} ${u} - Full View`, orientation: 'landscape', section: 'assy_tag', location: 'front', template: 'SV.png' });
-                for (let s = 1; s <= frontATs; s++)
-                    this._addPhoto({ id: `CC${cx}U${u}AT${s}`, name: `${name} ${u} - Assy Tag ${s} Front`, orientation: 'landscape', section: 'assy_tag', location: 'front', template: 'SV AT.png' });
-            }
-        });
-
-        // === 2. Component REARS — servers ===
-        this.components.pkServerGroupATs.forEach(({ rear }, i) => {
-            const g = i + 1;
-            if (rear > 0)
-                this._addPhoto({ id: `BSV${g}`, name: `Server Group ${g} - Full Rear View`, orientation: 'landscape', section: 'assy_tag', location: 'rear', template: 'BSV F.png' });
-            for (let s = 1; s <= rear; s++)
-                this._addPhoto({ id: `BSV${g}AT${s}`, name: `Server Group ${g} - Assy Tag ${s} Rear`, orientation: 'landscape', section: 'assy_tag', location: 'rear', template: 'BSV AT.png' });
-        });
-
-        // === 2b. Component REARS — switches (full rear view added when stack has rear ATs) ===
-        this.components.pkSwitchStackATs.forEach(({ rear }, i) => {
-            const st = i + 1;
-            if (rear > 0)
-                this._addPhoto({ id: `BSW${st}`, name: `Switch Stack ${st} - Full Rear View`, orientation: 'landscape', section: 'assy_tag', location: 'rear', template: 'BSW AT.png' });
-            for (let sw = 1; sw <= rear; sw++)
-                this._addPhoto({ id: `BSW${st}AT${sw}`, name: `Switch Stack ${st} - Assy Tag ${sw} Rear`, orientation: 'landscape', section: 'assy_tag', location: 'rear', template: 'BSW AT.png' });
-        });
-
-        // === 2c. Component REARS — custom components ===
-        this.components.pkCustomComponents.forEach(({ name, units, rearATs }, c) => {
-            const cx = c + 1;
-            for (let u = 1; u <= units; u++) {
-                if (rearATs > 0)
-                    this._addPhoto({ id: `BCC${cx}U${u}`, name: `${name} ${u} - Full Rear View`, orientation: 'landscape', section: 'assy_tag', location: 'rear', template: 'BSV F.png' });
-                for (let s = 1; s <= rearATs; s++)
-                    this._addPhoto({ id: `BCC${cx}U${u}AT${s}`, name: `${name} ${u} - Assy Tag ${s} Rear`, orientation: 'landscape', section: 'assy_tag', location: 'rear', template: 'BSV AT.png' });
-            }
-        });
-
-        // === 3. Accessory kits ===
+        // === 1. Accessory kits (AK BOX pill) ===
         for (let n = 1; n <= this.components.pkAkPns; n++)
             this._addPhoto({ id: `AK${n}`, name: `Accessory Kit PN ${n}`, orientation: 'landscape', section: 'accessory_kit', location: 'accessory_kit', template: 'AK.png' });
         for (const photo of CONFIG.packoutAkbPhotos) this._addPhoto(photo);
 
-        // === 4. Open rack FRONT ===
+        // === 2. Open rack FRONT (RACK pill) ===
         ['AFR1', 'AFR2', 'AFR3'].forEach(id => this._addPhoto(po(id)));
 
-        // === 5. Open rack REAR ===
+        // === 3. Component FRONTS — servers (RACK pill) ===
+        this.components.pkServerGroupATs.forEach(({ front }, i) => {
+            const g = i + 1;
+            this._addPhoto({ id: `SV${g}`, name: `Server Group ${g} - Full View`, orientation: 'landscape', section: 'before_bag', location: 'front', template: 'SV.png' });
+            for (let s = 1; s <= front; s++)
+                this._addPhoto({ id: `SV${g}AT${s}`, name: `Server Group ${g} - Assy Tag ${s} Front`, orientation: 'landscape', section: 'before_bag', location: 'front', template: 'SV AT.png' });
+        });
+
+        // === 3b. Component FRONTS — switches (RACK pill) ===
+        this.components.pkSwitchStackATs.forEach(({ front }, i) => {
+            const st = i + 1;
+            this._addPhoto({ id: `SW${st}`, name: `Switch Stack ${st} - Full View`, orientation: 'landscape', section: 'before_bag', location: 'front', template: 'SW.png' });
+            for (let sw = 1; sw <= front; sw++)
+                this._addPhoto({ id: `SW${st}AT${sw}`, name: `Switch Stack ${st} - Assy Tag ${sw} Front`, orientation: 'landscape', section: 'before_bag', location: 'front', template: 'SW AT.png' });
+        });
+
+        // === 3c. Component FRONTS — custom components (RACK pill) ===
+        this.components.pkCustomComponents.forEach(({ name, units, frontATs }, c) => {
+            const cx = c + 1;
+            for (let u = 1; u <= units; u++) {
+                this._addPhoto({ id: `CC${cx}U${u}`, name: `${name} ${u} - Full View`, orientation: 'landscape', section: 'before_bag', location: 'front', template: 'SV.png' });
+                for (let s = 1; s <= frontATs; s++)
+                    this._addPhoto({ id: `CC${cx}U${u}AT${s}`, name: `${name} ${u} - Assy Tag ${s} Front`, orientation: 'landscape', section: 'before_bag', location: 'front', template: 'SV AT.png' });
+            }
+        });
+
+        // === 4. Open rack REAR (RACK pill) ===
         ['ARR1', 'ARR2', 'ARR3'].forEach(id => this._addPhoto(po(id)));
 
-        // === 6. PDUs ===
+        // === 5. Component REARS — servers (RACK pill) ===
+        this.components.pkServerGroupATs.forEach(({ rear }, i) => {
+            const g = i + 1;
+            if (rear > 0)
+                this._addPhoto({ id: `BSV${g}`, name: `Server Group ${g} - Full Rear View`, orientation: 'landscape', section: 'before_bag', location: 'rear', template: 'BSV F.png' });
+            for (let s = 1; s <= rear; s++)
+                this._addPhoto({ id: `BSV${g}AT${s}`, name: `Server Group ${g} - Assy Tag ${s} Rear`, orientation: 'landscape', section: 'before_bag', location: 'rear', template: 'BSV AT.png' });
+        });
+
+        // === 5b. Component REARS — switches (RACK pill) ===
+        this.components.pkSwitchStackATs.forEach(({ rear }, i) => {
+            const st = i + 1;
+            if (rear > 0)
+                this._addPhoto({ id: `BSW${st}`, name: `Switch Stack ${st} - Full Rear View`, orientation: 'landscape', section: 'before_bag', location: 'rear', template: 'BSW AT.png' });
+            for (let sw = 1; sw <= rear; sw++)
+                this._addPhoto({ id: `BSW${st}AT${sw}`, name: `Switch Stack ${st} - Assy Tag ${sw} Rear`, orientation: 'landscape', section: 'before_bag', location: 'rear', template: 'BSW AT.png' });
+        });
+
+        // === 5c. Component REARS — custom components (RACK pill) ===
+        this.components.pkCustomComponents.forEach(({ name, units, rearATs }, c) => {
+            const cx = c + 1;
+            for (let u = 1; u <= units; u++) {
+                if (rearATs > 0)
+                    this._addPhoto({ id: `BCC${cx}U${u}`, name: `${name} ${u} - Full Rear View`, orientation: 'landscape', section: 'before_bag', location: 'rear', template: 'BSV F.png' });
+                for (let s = 1; s <= rearATs; s++)
+                    this._addPhoto({ id: `BCC${cx}U${u}AT${s}`, name: `${name} ${u} - Assy Tag ${s} Rear`, orientation: 'landscape', section: 'before_bag', location: 'rear', template: 'BSV AT.png' });
+            }
+        });
+
+        // === 6. PDUs (RACK pill) ===
         ['PDU1', 'PDU2', 'PDU3', 'PDU4', 'PDU5', 'PDU6', 'PDUAT1', 'PDUAT2'].forEach(id => this._addPhoto(po(id)));
 
-        // === 7. Pre-bag labels ===
+        // === 7. Pre-bag labels (RACK pill) ===
         ['SN', 'FRAT', 'LB1', 'LB2', 'LB3', 'LB4'].forEach(id => this._addPhoto(po(id)));
 
-        // === 8–9. Bagged rack (front then rear) ===
+        // === 8. Bagged rack (PLASTIC pill) ===
         ['BFRT', 'BFR1', 'BFR3', 'BRR2'].forEach(id => this._addPhoto(po(id)));
 
-        // === 10–13. Crated rack ===
+        // === 9. Crated rack (CARTON pill) ===
         ['CFR1', 'CFR2', 'CFRTT', 'CRR1', 'CRR2', 'CRR3', 'CRS1', 'CRS3', 'CRSTT', 'CLS1', 'CSN', 'CCI'].forEach(id => this._addPhoto(po(id)));
 
         if (this.hasDoorBranding)
@@ -491,7 +491,6 @@ const SESSION = {
         if (this.startSection) {
             const idx = this.photoQueue.findIndex(p => p.section === this.startSection);
             if (idx > 0) this.photoQueue = this.photoQueue.slice(idx);
-            // Pre-confirm checkpoints for sections that are being skipped
             if (this.startSection === 'bagged_rack' || this.startSection === 'rack_in_carton') {
                 this.checkpointBagging = true;
             }
