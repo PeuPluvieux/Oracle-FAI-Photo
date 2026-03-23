@@ -1077,10 +1077,13 @@ const App = {
 
     // Quagga2 fallback — actively maintained, confirmed iOS Safari support
     _startQuaggaScan(targetFieldId) {
+        // Hide the BarcodeDetector video element — Quagga2 injects its own into the container
+        document.getElementById('scanner-video').classList.add('hidden');
+
         Quagga.init({
             inputStream: {
                 type: 'LiveStream',
-                target: document.getElementById('scanner-video'),
+                target: document.getElementById('scanner-container'),
                 constraints: {
                     facingMode: 'environment',
                     width: { ideal: 1280 },
@@ -1131,6 +1134,10 @@ const App = {
             try { Quagga.stop(); } catch (e) {}
             try { Quagga.deInit(); } catch (e) {}
             this._quaggaActive = false;
+            // Remove Quagga-injected video/canvas and restore our video element
+            const container = document.getElementById('scanner-container');
+            container.querySelectorAll('video, canvas').forEach(el => el.remove());
+            document.getElementById('scanner-video').classList.remove('hidden');
         }
         // Turn off torch if active (BarcodeDetector path stream)
         if (this._torchOn && this._scannerStream) {
