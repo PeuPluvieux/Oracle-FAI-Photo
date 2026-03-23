@@ -1002,54 +1002,37 @@ const App = {
     async startScan(targetFieldId, fieldLabel) {
         document.getElementById('scanner-title').textContent = `Scan ${fieldLabel}`;
         document.getElementById('scanner-modal').classList.remove('hidden');
-
-        // Request camera with higher resolution for better barcode reads
-        const constraints = {
-            audio: false,
-            video: {
-                facingMode: 'environment',
-                width:  { ideal: 1280 },
-                height: { ideal: 720 }
-            }
-        };
-
-        let stream;
-        try {
-            stream = await navigator.mediaDevices.getUserMedia(constraints);
-        } catch {
-            Screens.showError('Could not access camera for scanning. Check camera permissions.');
-            this.stopScan();
-            return;
-        }
-
-        this._scannerStream = stream;
-        const videoEl = document.getElementById('scanner-video');
-        videoEl.srcObject = stream;
-        await videoEl.play();
-
-        // Update status text
-        document.getElementById('scanner-status').textContent = 'Scanning…';
-
-        // Show torch button only if device supports it
-        const track = stream.getVideoTracks()[0];
-        const capabilities = track?.getCapabilities?.() ?? {};
-        const torchBtn = document.getElementById('scanner-torch-btn');
-        if (capabilities.torch) {
-            torchBtn.classList.remove('hidden');
-        } else {
-            torchBtn.classList.add('hidden');
-        }
         this._torchOn = false;
 
-        // Try native BarcodeDetector first (Chrome/Edge on Android — very fast)
         if ('BarcodeDetector' in window) {
+            // Native path: manage stream manually, feed to #scanner-video
+            let stream;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    audio: false,
+                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+                });
+            } catch {
+                Screens.showError('Could not access camera for scanning. Check camera permissions.');
+                this.stopScan();
+                return;
+            }
+            this._scannerStream = stream;
+            const videoEl = document.getElementById('scanner-video');
+            videoEl.srcObject = stream;
+            await videoEl.play();
+            document.getElementById('scanner-status').textContent = 'Scanning…';
+            const track = stream.getVideoTracks()[0];
+            const capabilities = track?.getCapabilities?.() ?? {};
+            const torchBtn = document.getElementById('scanner-torch-btn');
+            torchBtn.classList.toggle('hidden', !capabilities.torch);
             this._startNativeScan(targetFieldId, videoEl);
+
         } else if (typeof Quagga !== 'undefined') {
-            // Release the manual stream — Quagga2 manages its own camera internally
-            this._scannerStream.getTracks().forEach(t => t.stop());
-            this._scannerStream = null;
-            videoEl.srcObject = null;
+            // Quagga2 path: let Quagga manage its own stream entirely
+            document.getElementById('scanner-status').textContent = 'Scanning…';
             this._startQuaggaScan(targetFieldId);
+
         } else {
             Screens.showError('Barcode scanner failed to load. Please check your internet connection.');
             this.stopScan();
@@ -1077,9 +1060,6 @@ const App = {
 
     // Quagga2 fallback — actively maintained, confirmed iOS Safari support
     _startQuaggaScan(targetFieldId) {
-        // Hide the BarcodeDetector video element — Quagga2 injects its own into the container
-        document.getElementById('scanner-video').classList.add('hidden');
-
         Quagga.init({
             inputStream: {
                 type: 'LiveStream',
@@ -1134,10 +1114,8 @@ const App = {
             try { Quagga.stop(); } catch (e) {}
             try { Quagga.deInit(); } catch (e) {}
             this._quaggaActive = false;
-            // Remove Quagga-injected video/canvas and restore our video element
-            const container = document.getElementById('scanner-container');
-            container.querySelectorAll('video, canvas').forEach(el => el.remove());
-            document.getElementById('scanner-video').classList.remove('hidden');
+            // Remove any canvases Quagga injected (imgBuffer, drawingBuffer, overlay)
+            document.getElementById('scanner-container').querySelectorAll('canvas').forEach(el => el.remove());
         }
         // Turn off torch if active (BarcodeDetector path stream)
         if (this._torchOn && this._scannerStream) {

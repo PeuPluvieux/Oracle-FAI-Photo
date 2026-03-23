@@ -3,7 +3,7 @@
  * Central configuration for photo sequences, templates, and component types
  */
 
-const APP_VERSION = 'V2.37.1';
+const APP_VERSION = 'V2.37.2';
 
 const CONFIG = {
     // Photo settings - single portrait mode, no cropping
