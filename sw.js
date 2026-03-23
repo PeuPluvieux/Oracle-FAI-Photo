@@ -4,7 +4,7 @@
  * Strategy: cache-first for static assets, network-first for CDN with cache fallback.
  */
 
-const CACHE_VERSION = 'v36';
+const CACHE_VERSION = 'v37';
 const CACHE_NAME = `oracle-fai-${CACHE_VERSION}`;
 
 // All local static assets
@@ -23,7 +23,7 @@ const STATIC_ASSETS = [
     './js/app.js',
     './vendor/tailwind.js',
     './vendor/jszip.min.js',
-    './vendor/zxing.min.js'
+    './vendor/quagga2.min.js'
 ];
 
 // Template PNG files (spaces encoded for URL matching)

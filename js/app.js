@@ -294,6 +294,11 @@ const App = {
         document.getElementById('scanner-close-btn').addEventListener('click', () => {
             this.stopScan();
         });
+        document.getElementById('scanner-manual-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            this.stopScan();
+            document.getElementById('serial-number').focus();
+        });
         document.getElementById('scanner-torch-btn').addEventListener('click', () => {
             this._toggleTorch();
         });
@@ -990,6 +995,7 @@ const App = {
     _scannerReader: null,
     _scannerStream: null,
     _scannerAnimFrame: null,
+    _quaggaActive: false,
     _torchOn: false,
 
     // Open scanner modal and start decoding for the given field
@@ -1038,8 +1044,12 @@ const App = {
         // Try native BarcodeDetector first (Chrome/Edge on Android — very fast)
         if ('BarcodeDetector' in window) {
             this._startNativeScan(targetFieldId, videoEl);
-        } else if (typeof ZXing !== 'undefined') {
-            this._startZxingScan(targetFieldId, videoEl, stream);
+        } else if (typeof Quagga !== 'undefined') {
+            // Release the manual stream — Quagga2 manages its own camera internally
+            this._scannerStream.getTracks().forEach(t => t.stop());
+            this._scannerStream = null;
+            videoEl.srcObject = null;
+            this._startQuaggaScan(targetFieldId);
         } else {
             Screens.showError('Barcode scanner failed to load. Please check your internet connection.');
             this.stopScan();
@@ -1065,22 +1075,44 @@ const App = {
         this._scannerAnimFrame = requestAnimationFrame(scan);
     },
 
-    // ZXing fallback — restrict to relevant formats only (much faster than MultiFormat)
-    _startZxingScan(targetFieldId, videoEl, stream) {
-        const hints = new Map();
-        hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
-            ZXing.BarcodeFormat.CODE_128
-        ]);
-        hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+    // Quagga2 fallback — actively maintained, confirmed iOS Safari support
+    _startQuaggaScan(targetFieldId) {
+        Quagga.init({
+            inputStream: {
+                type: 'LiveStream',
+                target: document.getElementById('scanner-video'),
+                constraints: {
+                    facingMode: 'environment',
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
+            },
+            decoder: {
+                readers: ['code_128_reader']
+            },
+            locate: true
+        }, (err) => {
+            if (err) {
+                Screens.showError('Barcode scanner failed to start.');
+                this.stopScan();
+                return;
+            }
+            Quagga.start();
+            this._quaggaActive = true;
 
-        const reader = new ZXing.BrowserMultiFormatReader(hints);
-        this._scannerReader = reader;
+            // Show torch button if the Quagga-managed track supports it
+            const track = Quagga.CameraAccess?.getActiveTrack?.();
+            const capabilities = track?.getCapabilities?.() ?? {};
+            const torchBtn = document.getElementById('scanner-torch-btn');
+            if (capabilities.torch) {
+                torchBtn.classList.remove('hidden');
+            }
+        });
 
-        // Feed the already-open stream directly instead of re-opening camera
-        reader.decodeFromStream(stream, videoEl, (result) => {
-            if (result) {
-                const text = result.getText ? result.getText() : String(result);
-                document.getElementById(targetFieldId).value = text;
+        Quagga.onDetected((result) => {
+            const code = result?.codeResult?.code;
+            if (code) {
+                document.getElementById(targetFieldId).value = code;
                 this.stopScan();
             }
         });
@@ -1093,18 +1125,20 @@ const App = {
             cancelAnimationFrame(this._scannerAnimFrame);
             this._scannerAnimFrame = null;
         }
-        // Stop ZXing reader
-        if (this._scannerReader) {
-            try { this._scannerReader.reset(); } catch (e) {}
-            this._scannerReader = null;
+        // Stop Quagga2
+        if (this._quaggaActive) {
+            try { Quagga.offDetected(); } catch (e) {}
+            try { Quagga.stop(); } catch (e) {}
+            try { Quagga.deInit(); } catch (e) {}
+            this._quaggaActive = false;
         }
-        // Turn off torch if active
+        // Turn off torch if active (BarcodeDetector path stream)
         if (this._torchOn && this._scannerStream) {
             const track = this._scannerStream.getVideoTracks()[0];
             if (track) track.applyConstraints({ advanced: [{ torch: false }] }).catch(() => {});
             this._torchOn = false;
         }
-        // Release camera stream
+        // Release camera stream (BarcodeDetector path)
         if (this._scannerStream) {
             this._scannerStream.getTracks().forEach(t => t.stop());
             this._scannerStream = null;
@@ -1119,8 +1153,9 @@ const App = {
 
     // Toggle torch/flashlight on the scanner stream
     _toggleTorch() {
-        if (!this._scannerStream) return;
-        const track = this._scannerStream.getVideoTracks()[0];
+        const track = this._quaggaActive
+            ? Quagga.CameraAccess?.getActiveTrack?.()
+            : this._scannerStream?.getVideoTracks()[0];
         if (!track) return;
         this._torchOn = !this._torchOn;
         track.applyConstraints({ advanced: [{ torch: this._torchOn }] }).catch(() => {});

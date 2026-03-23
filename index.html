@@ -15,7 +15,7 @@
 
     <script src="vendor/tailwind.js"></script>
     <script src="vendor/jszip.min.js"></script>
-    <script src="vendor/zxing.min.js"></script>
+    <script src="vendor/quagga2.min.js"></script>
     <link rel="stylesheet" href="css/styles.css">
     <script>
         tailwind.config = {
@@ -593,7 +593,10 @@
             </div>
         </div>
         <div class="bg-oracle-primary px-4 py-3 flex items-center justify-between" style="padding-bottom: max(env(safe-area-inset-bottom), 0.75rem)">
-            <p id="scanner-status" class="text-sm text-gray-400">Align barcode to scan…</p>
+            <div class="flex flex-col items-start gap-1">
+                <p id="scanner-status" class="text-sm text-gray-400">Align barcode to scan…</p>
+                <a id="scanner-manual-btn" href="#" class="text-xs text-oracle-accent underline">Type manually</a>
+            </div>
             <button id="scanner-torch-btn" class="hidden text-white bg-gray-700 hover:bg-oracle-accent px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.362a.75.75 0 01-.53.22H9.53a.75.75 0 01-.53-.22l-.347-.362z"/>
