@@ -276,6 +276,7 @@ const App = {
             if (photo?.section === 'rack_in_carton') SESSION.checkpointCarton  = true;
             Storage.saveSession(SESSION.toJSON());
             document.getElementById('snapshot-gate-modal').classList.add('hidden');
+            Camera.resume();
         });
 
         // Switch stack orientation modal buttons
@@ -292,6 +293,9 @@ const App = {
         });
         document.getElementById('scanner-close-btn').addEventListener('click', () => {
             this.stopScan();
+        });
+        document.getElementById('scanner-torch-btn').addEventListener('click', () => {
+            this._toggleTorch();
         });
 
         // Camera screen
@@ -986,6 +990,7 @@ const App = {
     _scannerReader: null,
     _scannerStream: null,
     _scannerAnimFrame: null,
+    _torchOn: false,
 
     // Open scanner modal and start decoding for the given field
     async startScan(targetFieldId, fieldLabel) {
@@ -1015,6 +1020,20 @@ const App = {
         const videoEl = document.getElementById('scanner-video');
         videoEl.srcObject = stream;
         await videoEl.play();
+
+        // Update status text
+        document.getElementById('scanner-status').textContent = 'Scanning…';
+
+        // Show torch button only if device supports it
+        const track = stream.getVideoTracks()[0];
+        const capabilities = track?.getCapabilities?.() ?? {};
+        const torchBtn = document.getElementById('scanner-torch-btn');
+        if (capabilities.torch) {
+            torchBtn.classList.remove('hidden');
+        } else {
+            torchBtn.classList.add('hidden');
+        }
+        this._torchOn = false;
 
         // Try native BarcodeDetector first (Chrome/Edge on Android — very fast)
         if ('BarcodeDetector' in window) {
@@ -1079,6 +1098,12 @@ const App = {
             try { this._scannerReader.reset(); } catch (e) {}
             this._scannerReader = null;
         }
+        // Turn off torch if active
+        if (this._torchOn && this._scannerStream) {
+            const track = this._scannerStream.getVideoTracks()[0];
+            if (track) track.applyConstraints({ advanced: [{ torch: false }] }).catch(() => {});
+            this._torchOn = false;
+        }
         // Release camera stream
         if (this._scannerStream) {
             this._scannerStream.getTracks().forEach(t => t.stop());
@@ -1086,7 +1111,22 @@ const App = {
         }
         const video = document.getElementById('scanner-video');
         if (video) video.srcObject = null;
+        // Reset scanner UI
+        document.getElementById('scanner-status').textContent = 'Align barcode to scan…';
+        document.getElementById('scanner-torch-btn').classList.add('hidden');
         document.getElementById('scanner-modal').classList.add('hidden');
+    },
+
+    // Toggle torch/flashlight on the scanner stream
+    _toggleTorch() {
+        if (!this._scannerStream) return;
+        const track = this._scannerStream.getVideoTracks()[0];
+        if (!track) return;
+        this._torchOn = !this._torchOn;
+        track.applyConstraints({ advanced: [{ torch: this._torchOn }] }).catch(() => {});
+        const btn = document.getElementById('scanner-torch-btn');
+        btn.classList.toggle('bg-oracle-accent', this._torchOn);
+        btn.classList.toggle('bg-gray-700', !this._torchOn);
     },
 
     // Show a yellow focus indicator at the tapped position
@@ -1255,6 +1295,7 @@ const App = {
         SESSION.setStackOrientation(this._pendingStackNum, orientation);
         this._pendingStackNum = null;
         document.getElementById('switch-orient-modal').classList.add('hidden');
+        Camera.resume();
         Screens.updateCameraUI();
     },
 

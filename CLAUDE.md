@@ -191,7 +191,7 @@ Always update APP_VERSION (and SW version if applicable) before committing any c
 - Photo queue entries: `{ id, name, template, orientation, location, section }`
 - `section` is used for pill grouping in packout; `location` is used in pretest
 - Always keep pretest and packout logic parallel in structure
-- Commit with `feat:` / `fix:` prefixes; co-author line required
+- Commit with `feat:` / `fix:` prefixes; **never** include a `Co-Authored-By:` line in commit messages
 - Do NOT include `server.py` in commits (local dev only)
 - `Test Sample Packout/Packout/Photo Template/` PNG files ARE committed (needed for GitHub Pages)
 - Do NOT commit the rest of `Test Sample Packout/` (reference photos, .pptx, .pdf — local assets only)
