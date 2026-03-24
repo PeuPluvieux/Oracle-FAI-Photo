@@ -3,7 +3,7 @@
  * Central configuration for photo sequences, templates, and component types
  */
 
-const APP_VERSION = 'V2.37.2';
+const APP_VERSION = 'V2.40.0';
 
 const CONFIG = {
     // Photo settings - single portrait mode, no cropping
@@ -179,47 +179,46 @@ const CONFIG = {
     // NOTE: section assignments can be refined when final guidelines arrive.
     packoutDefaultPhotos: [
         // Open rack — front (BEFORE)
-        { id: 'AFR1',   name: 'Open Rack - Front 1',           template: 'AFR1.png',   orientation: 'portrait',   location: 'front',  section: 'before_bag' },
-        { id: 'AFR2',   name: 'Open Rack - Front 2',           template: 'AFR2.png',   orientation: 'portrait',   location: 'front',  section: 'before_bag' },
-        { id: 'AFR3',   name: 'Open Rack - Front 3',           template: 'AFR3.png',   orientation: 'portrait',   location: 'front',  section: 'before_bag' },
+        { id: 'AFR1',   name: 'Front Rack - Straight on',       template: 'AFR1.png',   orientation: 'portrait',   location: 'front',  section: 'before_bag' },
+        { id: 'AFR2',   name: 'Front Rack - 45° Right',         template: 'AFR2.png',   orientation: 'portrait',   location: 'front',  section: 'before_bag' },
+        { id: 'AFR3',   name: 'Front Rack - 45° Left',          template: 'AFR3.png',   orientation: 'portrait',   location: 'front',  section: 'before_bag' },
         // Open rack — rear (BEFORE)
-        { id: 'ARR1',   name: 'Open Rack - Rear 1',            template: 'ARR1.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
-        { id: 'ARR2',   name: 'Open Rack - Rear 2',            template: 'ARR2.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
-        { id: 'ARR3',   name: 'Open Rack - Rear 3',            template: 'ARR3.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
-        // Rack assy tags & SN (BEFORE)
-        { id: 'SN',     name: 'Rack Serial Number',            template: 'FRAT.png',   orientation: 'landscape',  location: 'labels', section: 'before_bag' },
-        { id: 'FRAT',   name: 'Front Rack Assy Tag',           template: 'FRAT.png',   orientation: 'landscape',  location: 'labels', section: 'before_bag' },
+        { id: 'ARR1',   name: 'Rear Rack - Straight on',        template: 'ARR1.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
+        { id: 'ARR2',   name: 'Rear Rack - 45° Right',          template: 'ARR2.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
+        { id: 'ARR3',   name: 'Rear Rack - 45° Left',           template: 'ARR3.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
+        // Rack assy tags (BEFORE)
+        { id: 'FRAT',   name: 'Front Rack Assy Tag',            template: 'FRAT.png',   orientation: 'landscape',  location: 'labels', section: 'before_bag' },
         // PDUs (BEFORE)
-        { id: 'PDU1',   name: 'PDU Left - Photo 1',            template: 'PDU1.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
-        { id: 'PDU2',   name: 'PDU Left - Photo 2',            template: 'PDU2.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
-        { id: 'PDU3',   name: 'PDU Left - Photo 3',            template: 'PDU3.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
-        { id: 'PDU4',   name: 'PDU Right - Photo 1',           template: 'PDU4.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
-        { id: 'PDU5',   name: 'PDU Right - Photo 2',           template: 'PDU5.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
-        { id: 'PDU6',   name: 'PDU Right - Photo 3',           template: 'PDU6.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
+        { id: 'PDU1',   name: 'PDU Left - Top',                 template: 'PDU1.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
+        { id: 'PDU2',   name: 'PDU Left - Middle',              template: 'PDU2.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
+        { id: 'PDU3',   name: 'PDU Left - Bottom',              template: 'PDU3.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
+        { id: 'PDU4',   name: 'PDU Right - Top',                template: 'PDU4.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
+        { id: 'PDU5',   name: 'PDU Right - Middle',             template: 'PDU5.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
+        { id: 'PDU6',   name: 'PDU Right - Bottom',             template: 'PDU6.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
         // PDU assy tags (BEFORE)
         { id: 'PDUAT1', name: 'PDU Assy Tag 1',                template: 'PDUAT1.png', orientation: 'landscape',  location: 'rear',   section: 'before_bag' },
         { id: 'PDUAT2', name: 'PDU Assy Tag 2',                template: 'PDUAT2.png', orientation: 'landscape',  location: 'rear',   section: 'before_bag' },
         // Bagged rack — shrink-wrapped (AFTER)
         { id: 'BFRT',   name: 'Bagged Rack - Front Top',       template: 'BFRT.png',   orientation: 'portrait',   location: 'front',  section: 'bagged_rack' },
-        { id: 'BFR1',   name: 'Bagged Rack - Front 1',         template: 'BFR1.png',   orientation: 'portrait',   location: 'front',  section: 'bagged_rack' },
-        { id: 'BFR3',   name: 'Bagged Rack - Front 3',         template: 'BFR3.png',   orientation: 'portrait',   location: 'front',  section: 'bagged_rack' },
-        { id: 'BRR2',   name: 'Bagged Rack - Rear 2',          template: 'BRR2.png',   orientation: 'portrait',   location: 'rear',   section: 'bagged_rack' },
+        { id: 'BFR1',   name: 'Bagged Rack - Straight on',      template: 'BFR1.png',   orientation: 'portrait',   location: 'front',  section: 'bagged_rack' },
+        { id: 'BFR3',   name: 'Bagged Rack - 45° Right',        template: 'BFR3.png',   orientation: 'portrait',   location: 'front',  section: 'bagged_rack' },
+        { id: 'BRR2',   name: 'Bagged Rack - 45° Right (Rear Side)', template: 'BRR2.png', orientation: 'portrait', location: 'rear',   section: 'bagged_rack' },
         // Crated rack — front (AFTER)
-        { id: 'CFR1',   name: 'Crated Rack - Front 1',         template: 'CFR1.png',   orientation: 'portrait',   location: 'front',  section: 'rack_in_carton' },
-        { id: 'CFR2',   name: 'Crated Rack - Front 2',         template: 'CFR2.png',   orientation: 'landscape',  location: 'front',  section: 'rack_in_carton' },
-        { id: 'CFRTT',  name: 'Crated Rack - Front Top',       template: 'CFRTT.png',  orientation: 'portrait',   location: 'front',  section: 'rack_in_carton' },
+        { id: 'CFR1',   name: 'Crated Rack - Straight on (Front Side)', template: 'CFR1.png', orientation: 'portrait', location: 'front', section: 'rack_in_carton' },
+        { id: 'CFR2',   name: 'Crated Rack - Front anti-tamper label',  template: 'CFR2.png', orientation: 'landscape', location: 'front', section: 'rack_in_carton' },
+        { id: 'CFRTT',  name: "Crated Rack - Front Tip 'N Tell",        template: 'CFRTT.png', orientation: 'portrait', location: 'front', section: 'rack_in_carton' },
         // Crated rack — rear (AFTER)
-        { id: 'CRR1',   name: 'Crated Rack - Rear 1',          template: 'CRR1.png',   orientation: 'portrait',   location: 'rear',   section: 'rack_in_carton' },
-        { id: 'CRR2',   name: 'Crated Rack - Rear 2',          template: 'CRR2.png',   orientation: 'landscape',  location: 'rear',   section: 'rack_in_carton' },
-        { id: 'CRR3',   name: 'Crated Rack - Rear 3',          template: 'CRR3.png',   orientation: 'landscape',  location: 'rear',   section: 'rack_in_carton' },
+        { id: 'CRR1',   name: 'Crated Rack - Straight on (Rear Side)',  template: 'CRR1.png',  orientation: 'portrait',  location: 'rear',   section: 'rack_in_carton' },
+        { id: 'CRR2',   name: 'Crated Rack - Rear anti-tamper label',   template: 'CRR2.png',  orientation: 'landscape', location: 'rear',   section: 'rack_in_carton' },
+        { id: 'CRR3',   name: 'Crated Rack - anti-tamper label (straps)', template: 'CRR3.png', orientation: 'landscape', location: 'rear',  section: 'rack_in_carton' },
         // Crated rack — sides (AFTER)
-        { id: 'CRS1',   name: 'Crated Rack - Right Side 1',    template: 'CRS1.png',   orientation: 'portrait',   location: 'side_a', section: 'rack_in_carton' },
-        { id: 'CRS3',   name: 'Crated Rack - Right Side 3',    template: 'CRS3.png',   orientation: 'landscape',  location: 'side_a', section: 'rack_in_carton' },
-        { id: 'CRSTT',  name: 'Crated Rack - Right Side Top',  template: 'CRSTT.png',  orientation: 'portrait',   location: 'side_a', section: 'rack_in_carton' },
-        { id: 'CLS1',   name: 'Crated Rack - Left Side 1',     template: 'CLS1.png',   orientation: 'portrait',   location: 'side_b', section: 'rack_in_carton' },
+        { id: 'CRS1',   name: 'Crated Rack - Right Side',       template: 'CRS1.png',   orientation: 'portrait',   location: 'side_a', section: 'rack_in_carton' },
+        { id: 'CRS3',   name: 'Crated Rack - anti-tamper label (straps)', template: 'CRS3.png', orientation: 'landscape', location: 'side_a', section: 'rack_in_carton' },
+        { id: 'CRSTT',  name: "Crated Rack - Right side Tip 'N Tell",   template: 'CRSTT.png',  orientation: 'portrait',  location: 'side_a', section: 'rack_in_carton' },
+        { id: 'CLS1',   name: 'Crated Rack - Left Side',        template: 'CLS1.png',   orientation: 'portrait',   location: 'side_b', section: 'rack_in_carton' },
         // Crate & package labels (LABELS)
-        { id: 'CSN',    name: 'Crate - Customer Info Label',   template: 'CSN.png',    orientation: 'portrait',   location: 'labels', section: 'rack_in_carton' },
-        { id: 'CCI',    name: 'Crate - Customer Info Doc',     template: 'CCI.png',    orientation: 'landscape',  location: 'labels', section: 'rack_in_carton' },
+        { id: 'CSN',    name: 'Customer info - Shipping label', template: 'CSN.png',    orientation: 'portrait',   location: 'labels', section: 'rack_in_carton' },
+        { id: 'CCI',    name: 'Customer info - Shipping docs',  template: 'CCI.png',    orientation: 'landscape',  location: 'labels', section: 'rack_in_carton' },
         { id: 'LB1',    name: 'Front Rack Bottom Label',            template: 'LB1.png',    orientation: 'landscape',  location: 'labels', section: 'before_bag' },
         { id: 'LB2',    name: 'Rear Rack Side Label (Near PDU)',   template: 'LB2.png',    orientation: 'landscape',  location: 'labels', section: 'before_bag' },
         { id: 'LB3',    name: 'Rear Rack Bottom Label (Under PDU)',template: 'LB3.png',    orientation: 'landscape',  location: 'labels', section: 'before_bag' },
@@ -476,7 +475,7 @@ const SESSION = {
         ['PDU1', 'PDU2', 'PDU3', 'PDU4', 'PDU5', 'PDU6', 'PDUAT1', 'PDUAT2'].forEach(id => this._addPhoto(po(id)));
 
         // === 7. Pre-bag labels (RACK pill) ===
-        ['SN', 'FRAT', 'LB1', 'LB2', 'LB3', 'LB4'].forEach(id => this._addPhoto(po(id)));
+        ['FRAT', 'LB1', 'LB2', 'LB3', 'LB4'].forEach(id => this._addPhoto(po(id)));
 
         // === 8. Bagged rack (PLASTIC pill) ===
         ['BFRT', 'BFR1', 'BFR3', 'BRR2'].forEach(id => this._addPhoto(po(id)));

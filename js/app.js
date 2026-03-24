@@ -80,6 +80,9 @@ const App = {
         // Restore SESSION state from saved metadata
         SESSION.fromJSON(savedSession);
 
+        // Re-initialize pills with correct labels for the restored mode
+        Screens._initSectionPills();
+
         // Load photos from IndexedDB
         const photos = await Storage.loadPhotos();
 
