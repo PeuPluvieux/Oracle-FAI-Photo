@@ -1,5 +1,5 @@
 /**
- * Oracle FAI Photos - Main Application
+ * L11 FAI Photos - Main Application
  * Initializes and coordinates all modules.
  * Supports session resume from IndexedDB/localStorage after crash/reload.
  */
@@ -7,7 +7,7 @@
 const App = {
     // Initialize application
     async init() {
-        console.log('Oracle FAI Photos - Initializing...');
+        console.log('L11 FAI Photos - Initializing...');
 
         Capture.init();
         await Storage.init();
@@ -28,7 +28,7 @@ const App = {
             }
         });
 
-        console.log('Oracle FAI Photos - Ready');
+        console.log('L11 FAI Photos - Ready');
     },
 
     // Auth — PBKDF2(SHA-256, 100k iterations) of the login password

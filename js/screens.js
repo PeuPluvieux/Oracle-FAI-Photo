@@ -1,5 +1,5 @@
 /**
- * Oracle FAI Photos - Screens Module
+ * L11 FAI Photos - Screens Module
  * Handles screen transitions, UI state, and template overlays
  */
 

@@ -1,5 +1,5 @@
 /**
- * Password hash generator for Oracle FAI Photos login.
+ * Password hash generator for L11 FAI Photos login.
  * Run: node scripts/hash-password.js
  * Paste the output values into js/app.js under _auth.saltHex and _auth.hashHex.
  */

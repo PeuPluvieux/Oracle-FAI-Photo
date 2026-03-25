@@ -1,10 +1,10 @@
 /**
- * Oracle FAI Photos - Service Worker
+ * L11 FAI Photos - Service Worker
  * Caches all app assets for offline use.
  * Strategy: cache-first for static assets, network-first for CDN with cache fallback.
  */
 
-const CACHE_VERSION = 'v40';
+const CACHE_VERSION = 'v41';
 const CACHE_NAME = `oracle-fai-${CACHE_VERSION}`;
 
 // All local static assets

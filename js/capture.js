@@ -1,5 +1,5 @@
 /**
- * Oracle FAI Photos - Capture Module
+ * L11 FAI Photos - Capture Module
  * Memory-optimised: full-resolution photos go to IndexedDB,
  * lightweight thumbnails (≤600px) stay in SESSION.capturedPhotos for display.
  * Export always reads full-res blobs from IndexedDB.

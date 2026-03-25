@@ -1,5 +1,5 @@
 /**
- * Oracle FAI Photos - Storage Module
+ * L11 FAI Photos - Storage Module
  * Persists photos to IndexedDB (as blobs) and session metadata to localStorage.
  * Photos are saved immediately after capture so they survive crashes/reloads.
  */

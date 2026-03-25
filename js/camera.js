@@ -1,5 +1,5 @@
 /**
- * Oracle FAI Photos - Camera Module
+ * L11 FAI Photos - Camera Module
  * Handles camera access, device selection, video stream, and auto-recovery.
  *
  * Uses minimal constraints so the camera behaves like the native camera app

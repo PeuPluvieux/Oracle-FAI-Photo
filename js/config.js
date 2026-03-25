@@ -1,9 +1,9 @@
 /**
- * Oracle FAI Photos - Configuration
+ * L11 FAI Photos - Configuration
  * Central configuration for photo sequences, templates, and component types
  */
 
-const APP_VERSION = 'V2.40.0';
+const APP_VERSION = 'V2.41.0';
 
 const CONFIG = {
     // Photo settings - single portrait mode, no cropping

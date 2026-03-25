@@ -1,7 +1,7 @@
 {
-    "name": "Oracle FAI Photos",
-    "short_name": "FAI Photos",
-    "description": "First Article Inspection photo capture tool for Oracle rack equipment",
+    "name": "L11 FAI Photos",
+    "short_name": "L11 FAI",
+    "description": "First Article Inspection photo capture tool for rack equipment",
     "start_url": "./",
     "display": "standalone",
     "orientation": "portrait",

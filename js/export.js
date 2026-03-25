@@ -1,5 +1,5 @@
 /**
- * Oracle FAI Photos - Export Module
+ * L11 FAI Photos - Export Module
  * Loads full-resolution photos from IndexedDB for export (SESSION only holds thumbnails).
  * Reports progress via the export-progress-overlay in the UI.
  */
