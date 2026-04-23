@@ -207,3 +207,39 @@ This app uses a **cache-first service worker**. When JS/HTML changes are pushed:
 - **If a fix appears not to work even though the logic is correct, always ask: "Have you hard-refreshed since the last push?"** — this is the first thing to check before deeper debugging.
 - On mobile: Settings → Safari/Chrome → Clear Website Data, or use remote DevTools.
 - In DevTools: Application → Service Workers → Update → Skip Waiting → refresh page.
+
+---
+
+## RuFlo V3 — Orchestration & Agent Rules
+
+### Concurrency: 1 Message = All Related Operations
+- All operations MUST be concurrent/parallel in a single message
+- ALWAYS batch ALL todos in ONE TodoWrite call (5-10+ minimum)
+- ALWAYS spawn ALL agents in ONE message with full instructions via Task tool
+- ALWAYS batch ALL file reads/writes/edits in ONE message
+- ALWAYS batch ALL Bash commands in ONE message
+
+### Swarm Configuration
+- ALWAYS use hierarchical topology for coding swarms
+- Keep maxAgents at 6–8 for tight coordination
+- Use `raft` consensus for hive-mind (leader maintains authoritative state)
+
+```bash
+npx @claude-flow/cli@latest swarm init --topology hierarchical --max-agents 8 --strategy specialized
+```
+
+### Swarm Execution Rules
+- ALWAYS use `run_in_background: true` for all agent Task calls
+- ALWAYS put ALL agent Task calls in ONE message for parallel execution
+- After spawning, STOP — do NOT add more tool calls or check status
+- Never poll TaskOutput or check swarm status — trust agents to return
+- When agent results arrive, review ALL results before proceeding
+
+### V3 CLI Quick Reference
+```bash
+claude mcp add claude-flow -- npx -y @claude-flow/cli@latest
+npx @claude-flow/cli@latest daemon start
+npx @claude-flow/cli@latest swarm init --v3-mode
+npx @claude-flow/cli@latest memory search --query "..."
+npx @claude-flow/cli@latest doctor --fix
+```

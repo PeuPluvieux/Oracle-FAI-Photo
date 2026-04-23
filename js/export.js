@@ -75,11 +75,21 @@ const Export = {
             this._updateProgress(10 + (i + 1) / sessionPhotos.length * 60);
         }
 
+        // Add metadata.json for the FAI report builder
+        const metadata = {
+            part_number:   SESSION.partNumber   || '',
+            serial_number: SESSION.serialNumber || '',
+            fai_state:     SESSION.mode === 'pretest' ? 'Pretest' : 'Packout',
+            rack_code:     SESSION.rackType     || '',
+            photos:        SESSION.capturedPhotos.map(p => p.filename)
+        };
+        zip.file('metadata.json', JSON.stringify(metadata, null, 2));
+
         this._updateProgress(70);
 
         const zipBlob = await zip.generateAsync(
             { type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 3 } },
-            metadata => this._updateProgress(70 + metadata.percent * 0.3)
+            zipMeta => this._updateProgress(70 + zipMeta.percent * 0.3)
         );
 
         this._updateProgress(100);

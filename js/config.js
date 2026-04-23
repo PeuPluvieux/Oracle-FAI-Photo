@@ -3,7 +3,7 @@
  * Central configuration for photo sequences, templates, and component types
  */
 
-const APP_VERSION = 'V2.41.0';
+const APP_VERSION = 'V2.44.0';
 
 const CONFIG = {
     // Photo settings - single portrait mode, no cropping
@@ -58,14 +58,6 @@ const CONFIG = {
         { id: 'RR8', name: 'Rear Rack - Bottom Half 45 Right', template: 'RR8.png', orientation: 'portrait', location: 'rear', section: 'bottom_half' },
         { id: 'RR9', name: 'Rear Rack - Bottom Half 45 Left', template: 'RR9.png', orientation: 'portrait', location: 'rear', section: 'bottom_half' },
 
-        // --- PDUs (rear) ---
-        { id: 'PDU1', name: 'PDU Left - Photo 1', template: 'PDUL.png', orientation: 'portrait', location: 'rear', section: 'pdu' },
-        { id: 'PDU2', name: 'PDU Left - Photo 2', template: 'PDUL.png', orientation: 'portrait', location: 'rear', section: 'pdu' },
-        { id: 'PDU3', name: 'PDU Left - Photo 3', template: 'PDUL.png', orientation: 'portrait', location: 'rear', section: 'pdu' },
-        { id: 'PDU4', name: 'PDU Right - Photo 1', template: 'PDUR.png', orientation: 'portrait', location: 'rear', section: 'pdu' },
-        { id: 'PDU5', name: 'PDU Right - Photo 2', template: 'PDUR.png', orientation: 'portrait', location: 'rear', section: 'pdu' },
-        { id: 'PDU6', name: 'PDU Right - Photo 3', template: 'PDUR.png', orientation: 'portrait', location: 'rear', section: 'pdu' },
-
         // --- LEFT SIDE ---
         { id: 'LS1', name: 'Left Side - Full', template: 'LS1.png', orientation: 'portrait', location: 'left_side', section: 'full' },
         { id: 'LS2', name: 'Left Side - Top Half', template: 'LS2.png', orientation: 'portrait', location: 'left_side', section: 'top_half' },
@@ -90,6 +82,7 @@ const CONFIG = {
     // When user enters qty, photos are auto-generated for each unit.
     componentTypes: {
         switches: {
+            tier: 'core',
             label: 'Switch Stack',
             askLabel: 'How many switch stacks?',
             front: {
@@ -111,6 +104,7 @@ const CONFIG = {
             }
         },
         servers: {
+            tier: 'core',
             label: 'Server Group',
             askLabel: 'How many server groups?',
             front: {
@@ -134,6 +128,7 @@ const CONFIG = {
             }
         },
         corningEdge: {
+            tier: 'optional',
             label: 'Corning Edge',
             askLabel: 'How many Corning Edge units?',
             front: {
@@ -147,6 +142,7 @@ const CONFIG = {
             back: null
         },
         cableLabels: {
+            tier: 'core',
             label: 'Cable Type',
             askLabel: 'How many cable types?',
             front: {
@@ -160,6 +156,7 @@ const CONFIG = {
             back: null
         },
         cableBend: {
+            tier: 'core',
             label: 'Cable Bend Test',
             askLabel: 'How many cable bend tests?',
             front: {
@@ -188,13 +185,6 @@ const CONFIG = {
         { id: 'ARR3',   name: 'Rear Rack - 45° Left',           template: 'ARR3.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
         // Rack assy tags (BEFORE)
         { id: 'FRAT',   name: 'Front Rack Assy Tag',            template: 'FRAT.png',   orientation: 'landscape',  location: 'labels', section: 'before_bag' },
-        // PDUs (BEFORE)
-        { id: 'PDU1',   name: 'PDU Left - Top',                 template: 'PDU1.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
-        { id: 'PDU2',   name: 'PDU Left - Middle',              template: 'PDU2.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
-        { id: 'PDU3',   name: 'PDU Left - Bottom',              template: 'PDU3.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
-        { id: 'PDU4',   name: 'PDU Right - Top',                template: 'PDU4.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
-        { id: 'PDU5',   name: 'PDU Right - Middle',             template: 'PDU5.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
-        { id: 'PDU6',   name: 'PDU Right - Bottom',             template: 'PDU6.png',   orientation: 'portrait',   location: 'rear',   section: 'before_bag' },
         // PDU assy tags (BEFORE)
         { id: 'PDUAT1', name: 'PDU Assy Tag 1',                template: 'PDUAT1.png', orientation: 'landscape',  location: 'rear',   section: 'before_bag' },
         { id: 'PDUAT2', name: 'PDU Assy Tag 2',                template: 'PDUAT2.png', orientation: 'landscape',  location: 'rear',   section: 'before_bag' },
@@ -250,7 +240,7 @@ const CONFIG = {
             // Front angles
             if (type.front) {
                 for (const angle of type.front.angles) {
-                    const suffix = angle.suffix ? `-${angle.suffix}` : '';
+                    const suffix = angle.suffix || '';
                     const angleName = angle.name ? ` - ${angle.name}` : '';
                     frontPhotos.push({
                         id: `${type.front.prefix}${i}${suffix}`,
@@ -268,7 +258,7 @@ const CONFIG = {
             // Back angles
             if (type.back) {
                 for (const angle of type.back.angles) {
-                    const suffix = angle.suffix ? `-${angle.suffix}` : '';
+                    const suffix = angle.suffix || '';
                     const angleName = angle.name ? ` - ${angle.name}` : '';
                     backPhotos.push({
                         id: `${type.back.prefix}${i}${suffix}`,
@@ -288,6 +278,50 @@ const CONFIG = {
     }
 };
 
+// ===========================================
+// RACK TYPE CONFIG
+// Maps rack type codes to PDU photo sets.
+// "With Door" variants share the same PDU set as No Door — queue differences to be added
+// once photo specs for door variants are confirmed.
+// ===========================================
+CONFIG.rackTypes = {
+    RRND: { label: 'Rittal (No Door)',  pduFamily: 'rittal' },
+    RRWD: { label: 'Rittal (w/ Door)', pduFamily: 'rittal' },
+    C2ND: { label: 'C2 (No Door)',      pduFamily: 'c2'     },
+    C2WD: { label: 'C2 (w/ Door)',      pduFamily: 'c2'     }
+};
+
+CONFIG.rackPDUs = {
+    rittal: {
+        pretest: [
+            { id: 'PDU1', name: 'PDU Left - Photo 1',  template: 'PDUL.png', orientation: 'portrait', location: 'rear', section: 'pdu' },
+            { id: 'PDU2', name: 'PDU Left - Photo 2',  template: 'PDUL.png', orientation: 'portrait', location: 'rear', section: 'pdu' },
+            { id: 'PDU3', name: 'PDU Left - Photo 3',  template: 'PDUL.png', orientation: 'portrait', location: 'rear', section: 'pdu' },
+            { id: 'PDU4', name: 'PDU Right - Photo 1', template: 'PDUR.png', orientation: 'portrait', location: 'rear', section: 'pdu' },
+            { id: 'PDU5', name: 'PDU Right - Photo 2', template: 'PDUR.png', orientation: 'portrait', location: 'rear', section: 'pdu' },
+            { id: 'PDU6', name: 'PDU Right - Photo 3', template: 'PDUR.png', orientation: 'portrait', location: 'rear', section: 'pdu' }
+        ],
+        packout: [
+            { id: 'PDU1', name: 'PDU Left - Top',    template: 'PDU1.png', orientation: 'portrait', location: 'rear', section: 'before_bag' },
+            { id: 'PDU2', name: 'PDU Left - Middle', template: 'PDU2.png', orientation: 'portrait', location: 'rear', section: 'before_bag' },
+            { id: 'PDU3', name: 'PDU Left - Bottom', template: 'PDU3.png', orientation: 'portrait', location: 'rear', section: 'before_bag' },
+            { id: 'PDU4', name: 'PDU Right - Top',   template: 'PDU4.png', orientation: 'portrait', location: 'rear', section: 'before_bag' },
+            { id: 'PDU5', name: 'PDU Right - Middle',template: 'PDU5.png', orientation: 'portrait', location: 'rear', section: 'before_bag' },
+            { id: 'PDU6', name: 'PDU Right - Bottom',template: 'PDU6.png', orientation: 'portrait', location: 'rear', section: 'before_bag' }
+        ]
+    },
+    c2: {
+        pretest: [
+            // TODO: replace null template with C2 PDU template PNG filename when provided
+            { id: 'PDU1', name: 'PDU', template: null, orientation: 'portrait', location: 'rear', section: 'pdu' }
+        ],
+        packout: [
+            // TODO: replace null template with C2 PDU template PNG filename when provided
+            { id: 'PDU1', name: 'PDU', template: null, orientation: 'portrait', location: 'rear', section: 'before_bag' }
+        ]
+    }
+};
+
 
 // ===========================================
 // SESSION - Photo session state management
@@ -296,6 +330,7 @@ const SESSION = {
     mode: null,              // 'pretest' or 'packout'
     partNumber: '',          // PN (optional)
     serialNumber: '',        // SN (optional)
+    rackType: 'RRND',        // Rack type: RRND | RRWD | C2ND | C2WD
 
     // Component quantities (Pretest)
     components: {
@@ -352,11 +387,17 @@ const SESSION = {
         const defaults = CONFIG.pretestDefaultPhotos;
         const comps = this.components;
 
-        // Generate component photos in explicit order
-        // Front section: switches → servers → cableBend (after servers) → corningEdge
-        // Labels section: cableLabels (last, with LB photos)
-        const frontOrder  = ['switches', 'servers', 'cableBend', 'corningEdge'];
-        const labelOrder  = ['cableLabels'];
+        // Generate component photos in explicit order.
+        // Known components follow a fixed sequence; any new types added via Template Maker
+        // are appended automatically based on their front.location.
+        const frontOrder = ['switches', 'servers', 'cableBend', 'corningEdge'];
+        const labelOrder = ['cableLabels'];
+        const knownOrder = new Set([...frontOrder, ...labelOrder]);
+        for (const [key, type] of Object.entries(CONFIG.componentTypes)) {
+            if (knownOrder.has(key)) continue;
+            if (type.front?.location === 'labels') labelOrder.push(key);
+            else frontOrder.push(key);
+        }
 
         let frontComponents = [];
         let backComponents  = [];
@@ -389,8 +430,9 @@ const SESSION = {
         this._addPhotos(defaults.filter(p => p.id.startsWith('RR')));
         // 4. REAR COMPONENTS: BSW → BSV
         this._addPhotos(backComponents);
-        // 5. PDUs
-        this._addPhotos(defaults.filter(p => p.id.startsWith('PDU')));
+        // 5. PDUs (rack-type specific)
+        const _pduFamily = CONFIG.rackTypes[this.rackType]?.pduFamily || 'rittal';
+        this._addPhotos(CONFIG.rackPDUs[_pduFamily].pretest);
 
         // 6. SIDES: Left → Right
         this._addPhotos(defaults.filter(p => p.id.startsWith('LS')));
@@ -471,8 +513,10 @@ const SESSION = {
             }
         });
 
-        // === 6. PDUs (RACK pill) ===
-        ['PDU1', 'PDU2', 'PDU3', 'PDU4', 'PDU5', 'PDU6', 'PDUAT1', 'PDUAT2'].forEach(id => this._addPhoto(po(id)));
+        // === 6. PDUs (RACK pill — rack-type specific) ===
+        const _pduFamilyPk = CONFIG.rackTypes[this.rackType]?.pduFamily || 'rittal';
+        this._addPhotos(CONFIG.rackPDUs[_pduFamilyPk].packout);
+        ['PDUAT1', 'PDUAT2'].forEach(id => this._addPhoto(po(id)));
 
         // === 7. Pre-bag labels (RACK pill) ===
         ['FRAT', 'LB1', 'LB2', 'LB3', 'LB4'].forEach(id => this._addPhoto(po(id)));
@@ -556,8 +600,9 @@ const SESSION = {
         let count = 0;
 
         if (this.mode === 'pretest') {
-            // Default photos
-            count = CONFIG.pretestDefaultPhotos.length;
+            // Default photos + rack-type-specific PDUs
+            const _pduFam = CONFIG.rackTypes[this.rackType]?.pduFamily || 'rittal';
+            count = CONFIG.pretestDefaultPhotos.length + CONFIG.rackPDUs[_pduFam].pretest.length;
 
             // Component photos
             for (const [typeKey, qty] of Object.entries(this.components)) {
@@ -570,7 +615,8 @@ const SESSION = {
                 }
             }
         } else if (this.mode === 'packout') {
-            count = CONFIG.packoutDefaultPhotos.length;
+            const _pduFam = CONFIG.rackTypes[this.rackType]?.pduFamily || 'rittal';
+            count = CONFIG.packoutDefaultPhotos.length + CONFIG.rackPDUs[_pduFam].packout.length;
             if (this.hasDoorBranding) count += CONFIG.packoutDoorBranding.length;
 
             // Per server group: SV full view + front ATs + (BSV full view if rear > 0) + rear ATs
@@ -609,9 +655,10 @@ const SESSION = {
                     }
                     count -= this.components.pkAkPns + CONFIG.packoutAkbPhotos.length;
                 }
-                // skip before_bag (RACK section)
+                // skip before_bag (RACK section, including rack-type PDUs)
                 if (['bagged_rack', 'rack_in_carton'].includes(this.startSection)) {
                     count -= bySection['before_bag'] || 0;
+                    count -= CONFIG.rackPDUs[_pduFam].packout.length;
                 }
                 // skip bagged_rack
                 if (this.startSection === 'rack_in_carton') {
@@ -640,6 +687,7 @@ const SESSION = {
             mode: this.mode,
             partNumber: this.partNumber,
             serialNumber: this.serialNumber,
+            rackType: this.rackType,
             components: { ...this.components },
             hasDoorBranding: this.hasDoorBranding,
             startSection: this.startSection,
@@ -675,6 +723,7 @@ const SESSION = {
             const r = incoming.pkSwitchesPerStackRear  || 0;
             this.components.pkSwitchStackATs = Array.from({ length: incoming.pkSwitches }, () => ({ front: f, rear: r }));
         }
+        this.rackType           = data.rackType           || 'RRND';
         this.hasDoorBranding    = data.hasDoorBranding    || false;
         this.startSection       = data.startSection       || null;
         this.checkpointBagging  = data.checkpointBagging  || false;
@@ -691,6 +740,7 @@ const SESSION = {
         this.mode = null;
         this.partNumber = '';
         this.serialNumber = '';
+        this.rackType = 'RRND';
         this.components = {
             switches: 0,
             servers: 0,

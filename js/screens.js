@@ -11,13 +11,14 @@ function sanitizeInput(str, maxLen = 50) {
 const Screens = {
     currentScreen: 'landing',
 
-    // Component quantity input IDs mapped to SESSION.components keys (pretest)
-    componentInputs: {
-        'qty-switches': 'switches',
-        'qty-servers': 'servers',
-        'qty-corning-edge': 'corningEdge',
-        'qty-cable-labels': 'cableLabels',
-        'qty-cable-bend': 'cableBend'
+    // Dynamic map of qty input IDs → SESSION.components keys (pretest).
+    // Derived from CONFIG.componentTypes so new Template Maker components are included automatically.
+    get componentInputs() {
+        const map = {};
+        for (const key of Object.keys(CONFIG.componentTypes)) {
+            map[`qty-${key}`] = key;
+        }
+        return map;
     },
 
     // Packout component quantity input IDs mapped to SESSION.components keys
@@ -50,12 +51,6 @@ const Screens = {
         const pretestOptions = document.getElementById('pretest-options');
         const packoutOptions = document.getElementById('packout-options');
 
-        // Reset component quantity inputs
-        for (const inputId of Object.keys(this.componentInputs)) {
-            const el = document.getElementById(inputId);
-            if (el) el.value = 0;
-        }
-
         // Reset packout simple count inputs
         for (const inputId of Object.keys(this.packoutComponentInputs)) {
             const el = document.getElementById(inputId);
@@ -65,6 +60,9 @@ const Screens = {
         // Reset packout checkbox
         const doorBranding = document.getElementById('door-branding');
         if (doorBranding) doorBranding.checked = false;
+
+        // Restore rack type dropdown to current SESSION.rackType
+        document.getElementById('rack-type').value = SESSION.rackType || 'RRND';
 
         // Reset start-section selector to "Full Session"
         SESSION.startSection = null;
@@ -90,6 +88,7 @@ const Screens = {
         if (SESSION.mode === 'pretest') {
             pretestOptions.classList.remove('hidden');
             packoutOptions.classList.add('hidden');
+            this.renderPretestComponents(); // builds dynamic core + optional sections
         } else if (SESSION.mode === 'packout') {
             pretestOptions.classList.add('hidden');
             packoutOptions.classList.remove('hidden');
@@ -100,6 +99,61 @@ const Screens = {
 
         // Update photo count
         this.updatePhotoCount();
+    },
+
+    // Build the pretest component list: core rows always visible, optional rows collapsible.
+    // Re-renders from scratch each time so new Template Maker components appear automatically.
+    renderPretestComponents() {
+        const container = document.getElementById('pretest-component-list');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const qtyOpts = Array.from({length: 11}, (_, i) => `<option value="${i}">${i}</option>`).join('');
+
+        const makeRow = (key, type) =>
+            `<div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                <label for="qty-${key}" class="text-sm font-medium">${type.label}</label>
+                <select id="qty-${key}" class="w-20 px-2 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-center focus:outline-none focus:border-oracle-accent">${qtyOpts}</select>
+            </div>`;
+
+        const coreEntries     = Object.entries(CONFIG.componentTypes).filter(([, v]) => v.tier === 'core');
+        const optionalEntries = Object.entries(CONFIG.componentTypes).filter(([, v]) => v.tier === 'optional');
+
+        // Core rows — always visible
+        if (coreEntries.length) {
+            const coreDiv = document.createElement('div');
+            coreDiv.className = 'space-y-3 mb-3';
+            coreDiv.innerHTML = coreEntries.map(([key, type]) => makeRow(key, type)).join('');
+            container.appendChild(coreDiv);
+        }
+
+        // Optional section — collapsible
+        if (optionalEntries.length) {
+            const section = document.createElement('div');
+            section.className = 'border border-gray-700 rounded-lg overflow-hidden';
+            section.innerHTML =
+                `<button id="optional-toggle" onclick="Screens.toggleOptionalComponents()"
+                    class="w-full flex items-center justify-between p-3 bg-gray-800 text-sm font-medium text-gray-300 active:bg-gray-700">
+                    <span>+ Additional Components <span id="optional-badge" style="display:none;margin-left:6px;font-size:11px;background:#4299e1;color:#000;font-weight:700;padding:1px 8px;border-radius:99px;"></span></span>
+                    <span id="optional-chevron" style="color:#4a5568;font-size:11px;">▸</span>
+                </button>
+                <div id="optional-components" class="hidden">
+                    <div class="space-y-2 p-2 bg-gray-900">
+                        ${optionalEntries.map(([key, type]) => makeRow(key, type)).join('')}
+                    </div>
+                </div>`;
+            container.appendChild(section);
+        }
+    },
+
+    // Toggle the optional components collapsible section
+    toggleOptionalComponents() {
+        const panel   = document.getElementById('optional-components');
+        const chevron = document.getElementById('optional-chevron');
+        if (!panel) return;
+        const expanding = panel.classList.contains('hidden');
+        panel.classList.toggle('hidden', !expanding);
+        if (chevron) chevron.textContent = expanding ? '▾' : '▸';
     },
 
     // Calculate and update photo count based on current options
@@ -141,6 +195,16 @@ const Screens = {
 
         // Push per-group AT arrays into SESSION so calculateTotalPhotos uses current values
         if (typeof App !== 'undefined') App._syncPackoutAtArrays();
+
+        // Update optional-components badge count
+        const badge = document.getElementById('optional-badge');
+        if (badge) {
+            const selectedOptionals = Object.entries(CONFIG.componentTypes)
+                .filter(([key, type]) => type.tier === 'optional' && (SESSION.components[key] || 0) > 0)
+                .length;
+            badge.textContent = selectedOptionals > 0 ? `${selectedOptionals} selected` : '';
+            badge.style.display = selectedOptionals > 0 ? 'inline' : 'none';
+        }
 
         const count = SESSION.calculateTotalPhotos();
         document.getElementById('total-photo-count').textContent = count;

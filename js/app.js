@@ -67,6 +67,8 @@ const App = {
         document.getElementById('resume-pn-sn').textContent = pnSn || 'No PN/SN';
         document.getElementById('resume-photo-count').textContent = `${photoCount} photo${photoCount !== 1 ? 's' : ''} captured`;
 
+        const rackLabel = (CONFIG.rackTypes[savedSession.rackType] || {}).label || savedSession.rackType || '';
+        document.getElementById('resume-rack-type').textContent = rackLabel;
         document.getElementById('resume-modal').classList.remove('hidden');
     },
 
@@ -178,14 +180,15 @@ const App = {
             }
         });
 
-        // Component quantity input listeners (update photo count on change)
-        for (const inputId of Object.keys(Screens.componentInputs)) {
-            const el = document.getElementById(inputId);
-            if (el) {
-                el.addEventListener('input', () => {
+        // Component quantity input listeners — event delegation on the container so dynamically
+        // rendered selects (including new Template Maker components) are covered automatically.
+        const pretestOptionsEl = document.getElementById('pretest-options');
+        if (pretestOptionsEl) {
+            pretestOptionsEl.addEventListener('change', e => {
+                if (e.target.tagName === 'SELECT' && e.target.id.startsWith('qty-')) {
                     Screens.updatePhotoCount();
-                });
-            }
+                }
+            });
         }
 
         // Packout door branding checkbox
@@ -210,6 +213,12 @@ const App = {
                 el.addEventListener('input',  () => Screens.updatePhotoCount());
                 el.addEventListener('change', () => Screens.updatePhotoCount());
             }
+        });
+
+        // Rack type dropdown
+        document.getElementById('rack-type').addEventListener('change', (e) => {
+            SESSION.rackType = e.target.value;
+            Screens.updatePhotoCount();
         });
 
         // Start-From section selector buttons
